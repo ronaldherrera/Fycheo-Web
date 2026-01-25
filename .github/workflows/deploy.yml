@@ -36,4 +36,3 @@ jobs:
           server-dir: ${{ secrets.HOSTINGER_TARGET }}
           # Opciones de seguridad
           protocol: ftps
-          strict: false
