@@ -35,4 +35,4 @@ jobs:
           # Esta carpeta es donde va en el hosting (lo que pongas en el secreto)
           server-dir: ${{ secrets.HOSTINGER_TARGET }}
           # Opciones de seguridad
-          protocol: ftps
+          protocol: ftp
