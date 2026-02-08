@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Wallet, Building2 } from 'lucide-react';
+import { X, Wallet } from 'lucide-react';
 import { Elements } from '@stripe/react-stripe-js';
 import { getStripe } from '../lib/stripe';
 import { supabase } from '../lib/supabase';
@@ -18,7 +18,7 @@ interface RechargeModalProps {
 
 
 
-export const RechargeModal = ({ isOpen, onClose, onSuccess, initialAmount, companyId, walletName, walletImage }: RechargeModalProps) => {
+export const RechargeModal = ({ isOpen, onClose, onSuccess, initialAmount, companyId, walletName }: RechargeModalProps) => {
     const [amount, setAmount] = useState<number | ''>('');
     const [clientSecret, setClientSecret] = useState<string | null>(null);
     const [step, setStep] = useState<'amount' | 'payment'>('amount');
