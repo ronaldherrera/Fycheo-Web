@@ -12,6 +12,7 @@ import { Dashboard } from './pages/Dashboard';
 import { Billing } from './pages/Billing';
 import { PlanDetails } from './pages/PlanDetails';
 import { Companies } from './pages/Companies';
+import { CompaniesSettings } from './pages/CompaniesSettings';
 
 import { TimeTracking } from './pages/features/TimeTracking';
 import { Vacations } from './pages/features/Vacations';
@@ -65,6 +66,7 @@ function App() {
           <Route element={<DashboardLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/companies" element={<Companies />} />
+              <Route path="/companies/:companyId" element={<CompaniesSettings />} />
               <Route path="/account" element={<Account />} />
               <Route path="/billing" element={<Billing />} />
           </Route>
