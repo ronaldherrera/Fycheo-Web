@@ -17,7 +17,9 @@ import {
     Upload,
     Loader2, 
     X,
-    ArrowUpRight
+    ArrowUpRight,
+    ArrowRightLeft,
+    ArrowDownLeft
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
@@ -141,6 +143,7 @@ export const Dashboard = () => {
                 .from('transactions')
                 .select('*')
                 .eq('user_id', user.id)
+                .is('company_id', null) // Solo Wallet General
                 // .not('invoice_number', 'is', null) // Comentado para mostrar todos los movimientos (recargas, etc)
                 .order('created_at', { ascending: false });
             
@@ -703,23 +706,61 @@ export const Dashboard = () => {
                      </div>
 
                      <div className="bg-surface-dark/30 border border-white/5 rounded-2xl p-6">
-                        <h3 className="text-lg font-bold text-white mb-4">Últimos Movimientos</h3>
+                        <h3 className="text-lg font-bold text-white">Últimos Movimientos</h3>
+                        <p className="text-xs text-slate-500 mb-4">Wallet General</p>
                         <div className="space-y-4">
                             {invoices.length === 0 ? (
                                 <p className="text-slate-500 text-sm">No hay actividad reciente.</p>
                             ) : (
                                 invoices.slice(0, 3).map((inv: any) => {
-                                    const concept = inv.description || inv.invoice_concept || '';
-                                    const isRecharge = concept.toLowerCase().includes('recarga') || concept.toLowerCase().includes('stripe');
+                                    const conceptRaw = (inv.description || inv.invoice_concept || '').toLowerCase();
+                                    const isRecharge = conceptRaw.includes('recarga') || conceptRaw.includes('stripe') || inv.type === 'deposit';
+                                    const isTransfer = conceptRaw.includes('transferencia') || inv.type === 'transfer' || conceptRaw.includes('traspaso') || conceptRaw.includes('desactivación');
+                                    
+                                    // Configuración visual
+                                    let icon = ArrowRight;
+                                    let colorClass = 'bg-red-500/10 text-red-400';
+                                    let amountClass = 'text-white';
+                                    let label = 'Pago de Servicio';
+                                    
+                                    if (isTransfer) {
+                                        icon = ArrowRightLeft;
+                                        label = 'Transferencia';
+                                        // Lógica de colores igual a Billing.tsx
+                                        if (inv.amount >= 0) {
+                                            colorClass = 'bg-emerald-500/10 text-emerald-500';
+                                            amountClass = 'text-emerald-400';
+                                        } else {
+                                            // Icono rojo para salidas, fondo rojo
+                                            colorClass = 'bg-red-500/10 text-red-500';
+                                            amountClass = 'text-red-400';
+                                        }
+                                    } else if (isRecharge) {
+                                        icon = ArrowDownLeft;
+                                        colorClass = 'bg-emerald-500/10 text-emerald-500';
+                                        amountClass = 'text-emerald-400';
+                                        label = 'Recarga de Saldo';
+                                    } else {
+                                        // Gasto normal
+                                        icon = ArrowRight; // O ArrowUpRight
+                                        colorClass = 'bg-red-500/10 text-red-400';
+                                        amountClass = 'text-red-400';
+                                        label = 'Pago de Servicio';
+                                    }
+
                                     return (
                                         <div key={inv.id} className="flex items-center justify-between text-sm p-3 hover:bg-white/5 rounded-lg transition-colors group">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${isRecharge ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-400'}`}>
-                                                    {isRecharge ? <Plus className="w-4 h-4" /> : <ArrowRight className="w-4 h-4 -rotate-45" />}
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${colorClass}`}>
+                                                    {/* Renderizar icono dinámicamente. Si es transferencia de salida, invertir */}
+                                                    {(() => {
+                                                        const IconComponent = icon;
+                                                        return <IconComponent className={cn("w-4 h-4", isTransfer && inv.amount < 0 && "-scale-x-100", !isRecharge && !isTransfer && "-rotate-45")} />;
+                                                    })()}
                                                 </div>
                                                 <div>
                                                     <p className="text-white font-medium truncate max-w-[140px]" title={inv.description || inv.invoice_concept}>
-                                                        {isRecharge ? 'Recarga de Saldo' : 'Pago de Servicio'}
+                                                        {label}
                                                     </p>
                                                     <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">
                                                         {new Date(inv.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
@@ -727,8 +768,8 @@ export const Dashboard = () => {
                                                 </div>
                                             </div>
                                             <div className="text-right">
-                                                <span className={`font-bold block ${isRecharge ? 'text-emerald-400' : 'text-white'}`}>
-                                                    {isRecharge ? '+' : '-'}{Math.abs(inv.amount_net).toFixed(2)}€
+                                                <span className={`font-bold block ${amountClass}`}>
+                                                    {inv.amount > 0 ? '+' : ''}{inv.amount.toFixed(2)}€
                                                 </span>
                                             </div>
                                         </div>

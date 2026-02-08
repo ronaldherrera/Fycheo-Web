@@ -264,14 +264,14 @@ export const Billing = () => {
             doc.setTextColor(0, 0, 0);
             doc.text(`Total a Pagar:`, 135, finalY + 13);
             doc.setFontSize(14);
-            doc.setFont(undefined, 'bold');
-            doc.text(`${Number(gross).toFixed(2)} €`, 185, finalY + 13, { align: 'right' });
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${Number(gross).toFixed(2)} €`, 185, finalY + 13, { align: 'right' } as any);
             
             // Footer
-            doc.setFont(undefined, 'normal');
+            doc.setFont('helvetica', 'normal');
             doc.setFontSize(8);
             doc.setTextColor(150, 150, 150);
-            doc.text("Gracias por confiar en Fycheo.", 105, 280, { align: 'center' });
+            doc.text("Gracias por confiar en Fycheo.", 105, 280, { align: 'center' } as any);
 
             doc.save(`${fileNamePrefix}_${invoiceNum}.pdf`);
             success("Factura generada y descargada");
