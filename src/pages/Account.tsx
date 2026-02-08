@@ -232,7 +232,7 @@ export const Account = () => {
                             <input 
                                 type="text" 
                                 value={fiscalData.tax_id} 
-                                onChange={(e) => setFiscalData({...fiscalData, tax_id: e.target.value})} 
+                                onChange={(e) => setFiscalData({...fiscalData, tax_id: e.target.value.toUpperCase()})} 
                                 className="w-full bg-background border border-white/10 rounded px-3 py-2 text-white focus:border-primary outline-none"
                                 placeholder="12345678X"
                             />

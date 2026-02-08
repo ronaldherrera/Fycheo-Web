@@ -1,8 +1,28 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Building2, Users, CreditCard, ArrowUpRight, Plus, ExternalLink, MapPin, Briefcase, Check, ArrowLeft, ArrowRight, Upload, Loader2, X } from 'lucide-react';
+import { 
+    Building2, 
+    Users, 
+    CreditCard, 
+    ArrowRight, 
+    Plus,
+    Wallet,
+    MapPin,
+    Briefcase,
+    AlertTriangle,
+    Check,
+    ExternalLink,
+    ArrowLeft,
+    Upload,
+    Loader2, 
+    X,
+    ArrowUpRight
+} from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
+import { cn } from '../lib/utils';
+import { RechargeModal } from '../components/RechargeModal';
 
 interface CompanySummary {
     id: string;
@@ -12,6 +32,8 @@ interface CompanySummary {
     created_at: string;
     location?: string;
     logo_url?: string;
+    wallet_balance?: number;
+    individual_billing?: boolean;
 }
 
 interface NewCompanyData {
@@ -35,11 +57,13 @@ const initialCompanyData: NewCompanyData = {
 };
 
 export const Dashboard = () => {
-    const { toast, error: toastError, success: toastSuccess } = useToast();
+    console.log("Dashboard Render Check");
+    const navigate = useNavigate();
+    const { error: toastError, success: toastSuccess } = useToast();
 
     // Estados principales
     const [companies, setCompanies] = useState<CompanySummary[]>([]);
-    const [loading, setLoading] = useState(true);
+
     const [user, setUser] = useState<any>(null);
     const [balance, setBalance] = useState(0);
     const [uploading, setUploading] = useState(false);
@@ -50,9 +74,15 @@ export const Dashboard = () => {
     const [formData, setFormData] = useState<NewCompanyData>(initialCompanyData);
     const [selectedPlan, setSelectedPlan] = useState('basic');
     const [creating, setCreating] = useState(false);
+    const [isRechargeModalOpen, setIsRechargeModalOpen] = useState(false);
+    const [rechargeInitialAmount, setRechargeInitialAmount] = useState<number | undefined>(undefined);
+    const [rechargingCompany, setRechargingCompany] = useState<CompanySummary | null>(null);
+
 
     // Estados Facturas
     const [invoices, setInvoices] = useState<any[]>([]);
+
+
 
     useEffect(() => {
         loadDashboardData();
@@ -98,25 +128,26 @@ export const Dashboard = () => {
                         members_count: employeeCount,
                         location: c.location || '',
                         created_at: c.created_at,
-                        logo_url: c.logo_url
+                        logo_url: c.logo_url,
+                        wallet_balance: c.wallet_balance,
+                        individual_billing: c.individual_billing
                     };
                 });
                 setCompanies(mapped);
             }
 
-            // 3. Obtener facturas
+            // 3. Obtener facturas (ahora desde transactions)
             const { data: invoicesData } = await supabase
-                .from('invoices')
+                .from('transactions')
                 .select('*')
                 .eq('user_id', user.id)
+                // .not('invoice_number', 'is', null) // Comentado para mostrar todos los movimientos (recargas, etc)
                 .order('created_at', { ascending: false });
             
             if (invoicesData) setInvoices(invoicesData);
 
         } catch (error) {
             console.error("Error loading dashboard", error);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -199,15 +230,13 @@ export const Dashboard = () => {
             if (createError) throw createError;
     
             // 2. Auto-añadirme como admin
-            const { error: memberError } = await supabase
+            await supabase
                 .from('company_members')
                 .insert({
                     company_id: company.id,
                     user_id: user.id,
                     role: 'admin'
                 });
-                
-            // if (memberError) console.warn("Member warn", memberError);
 
             // 3. Descontar saldo
             const newBalance = balance - cost;
@@ -218,17 +247,22 @@ export const Dashboard = () => {
 
             if (balanceError) console.error("Error updating balance", balanceError);
 
-            // 4. Generar Factura de Consumo (Suscripción)
-            await supabase.from('invoices').insert({
+            // 4. Generar Factura de Consumo (Suscripción) - EN TRANSACTIONS
+            await supabase.from('transactions').insert({
                 user_id: user.id,
-                company_id: company.id,
+                company_id: null, // Gasto personal del usuario (Wallet General), no de la empresa laxa
+                amount: -cost,          // Gasto (negativo)
+                type: 'purchase',      // Tipo de movimiento
+                description: `Alta Empresa ${formData.name} - Plan ${selectedPlan.toUpperCase()}`,
+                
+                // Campos Factura
                 invoice_number: `FY-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.random().toString(36).substring(2,6).toUpperCase()}`,
-                concept: `Alta Empresa ${formData.name} - Plan ${selectedPlan.toUpperCase()}`,
+                invoice_concept: `Alta Empresa ${formData.name} - Plan ${selectedPlan.toUpperCase()}`,
                 amount_net: cost,
                 amount_vat: 0, 
-                amount_total: cost,
-                status: 'pagado',
-                type: 'ticket'
+                amount_gross: cost,
+                invoice_status: 'paid',
+                is_individual_billing: false // Es suscripción, factura a usuario
             });
     
             // Reset y recargar
@@ -246,62 +280,57 @@ export const Dashboard = () => {
         }
     };
 
-    // Estados Recarga
-    const [showRechargeModal, setShowRechargeModal] = useState(false);
-    const [recharging, setRecharging] = useState(false);
-    const [rechargeAmount, setRechargeAmount] = useState(100);
 
-    const handleRecharge = async () => {
-        if (rechargeAmount < 10 || rechargeAmount > 5000) {
-            toastError("La cantidad debe estar entre 10€ y 5.000€");
+
+    // --- LOGICA SIMULACION MENSUALIDAD (TEMPORAL) ---
+    const handleSimulateSubscription = async () => {
+        if (companies.length === 0) {
+            toastError("No tienes empresas para simular una suscripción.");
+            return;
+        }
+        
+        const company = companies[0]; // Usar la primera empresa
+        const amount = 29.00; // Precio Basic
+        
+        if (balance < amount) {
+            toastError("Saldo insuficiente para simular mensualidad (29€).");
             return;
         }
 
-        setRecharging(true);
-
         try {
-            // 1. Simular retardo de pasarela de pago
-            await new Promise(resolve => setTimeout(resolve, 2000));
-
             const { data: { user } } = await supabase.auth.getUser();
             if(!user) return;
-            
-            // 2. Actualizar saldo (Solo se suma el NETO)
-            const newBalance = balance + rechargeAmount;
 
-            const { error } = await supabase
-                .from('profiles')
-                .update({ wallet_balance: newBalance })
-                .eq('id', user.id);
+            // 1. Descontar Saldo
+            const newBalance = balance - amount;
+            const { error: balError } = await supabase.from('profiles').update({ wallet_balance: newBalance }).eq('id', user.id);
+            if (balError) throw balError;
 
-            if (error) throw error;
-
-            // 3. Generar Factura de Recarga
-            const vat = rechargeAmount * 0.21;
-            const total = rechargeAmount + vat;
-
-            await supabase.from('invoices').insert({
+            // 2. Insertar Transacción
+            await supabase.from('transactions').insert({
                 user_id: user.id,
-                invoice_number: `FY-${new Date().toISOString().slice(0,10).replace(/-/g,'')}-${Math.random().toString(36).substring(2,6).toUpperCase()}`,
-                concept: `Recarga de Saldo - ${rechargeAmount}€`,
-                amount_net: rechargeAmount,
-                amount_vat: vat,
-                amount_total: total,
-                status: 'paid',
-                type: 'invoice'
+                company_id: null, // Pago desde Wallet Personal
+                amount: -amount,
+                amount_gross: -amount,
+                amount_net: -amount, // Net amount should also be negative for consistency or careful with PDF logic
+                amount_vat: 0,
+                type: 'purchase',
+                description: `Renovación Plan Basic - ${company.name}`,
+                invoice_number: `REC-${Date.now().toString().slice(-6)}`,
+                invoice_concept: `Renovación Mensual - ${company.name}`,
+                invoice_status: 'paid',
+                is_individual_billing: false,
+                payment_method: 'wallet',
+                created_at: new Date().toISOString()
             });
 
-            toastSuccess(`¡Pago completado! Se han añadido ${rechargeAmount}€ a tu saldo.`);
-            setBalance(newBalance); 
-            setShowRechargeModal(false);
-            loadDashboardData(); // Recargar para ver factura nueva
-        } catch (error: any) {
-            console.error(error);
-            toastError("Error al procesar el pago: " + error.message);
-        } finally {
-            setRecharging(false);
+            toastSuccess("Simulación de mensualidad completada.");
+            loadDashboardData();
+        } catch (err: any) {
+            console.error(err);
+            toastError("Error al simular: " + err.message);
         }
-    }
+    };
 
     const totalEmployees = companies.reduce((acc, curr) => acc + curr.members_count, 0);
 
@@ -311,77 +340,45 @@ export const Dashboard = () => {
         { id: 'ultimate', name: 'Ultimate', price: 99, features: ['Empleados ilimitados', 'Suite completa', 'Gestor dedicado', 'API Access'] },
     ];
 
+    const totalNextMonth = companies.reduce((acc, c) => {
+        if (c.individual_billing) return acc;
+        const prices: Record<string, number> = { 'basic': 29, 'pro': 49, 'ultimate': 99 };
+        return acc + (prices[c.plan] || 0);
+    }, 0);
+    const isCovered = balance >= totalNextMonth;
+
     return (
         <div className="pt-8 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
             {/* Header */}
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
+            <div className="flex flex-col min-[975px]:flex-row justify-between items-start min-[975px]:items-end gap-4">
                  <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Hola, {user?.user_metadata?.full_name || 'Gestor'} 👋</h1>
                     <p className="text-slate-400">Bienvenido a tu panel de control global.</p>
                  </div>
                  <Button 
-                    onClick={() => setShowRechargeModal(true)} 
-                    className="bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 border-0 px-6"
+                    onClick={() => {
+                        setRechargeInitialAmount(undefined);
+                        setIsRechargeModalOpen(true);
+                    }} 
+                    className="w-full min-[975px]:w-auto bg-blue-600 hover:bg-blue-700 text-white shadow-lg shadow-blue-500/25 border-0 px-6"
                 >
                     <Plus className="w-5 h-5 mr-2" /> Recargar Saldo
+                </Button>
+                
+                {/* Botón Simulación (Solo Dev/Test) */}
+                <Button 
+                    onClick={handleSimulateSubscription}
+                    variant="ghost"
+                    className="text-xs text-slate-500 hover:text-white"
+                >
+                    Simular Mes
                 </Button>
             </div>
 
             {/* Modal Recarga de Saldo */}
-            {showRechargeModal && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[60] p-4">
-                    <div className="bg-surface-dark rounded-2xl shadow-2xl border border-white/10 max-w-md w-full p-8 animate-in fade-in zoom-in duration-200">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-2xl font-bold text-white">Recargar Saldo</h2>
-                            <Button variant="ghost" size="icon" onClick={() => setShowRechargeModal(false)}>✕</Button>
-                        </div>
-                        
-                        <div className="space-y-6">
-                            <div>
-                                <label className="block text-sm font-medium text-slate-300 mb-2">Cantidad a Recargar (Neto)</label>
-                                <div className="relative">
-                                    <span className="absolute left-4 top-3.5 text-slate-500">€</span>
-                                    <input 
-                                        type="number"
-                                        min="10"
-                                        max="5000"
-                                        step="1"
-                                        value={rechargeAmount}
-                                        onChange={(e) => setRechargeAmount(Math.max(0, parseInt(e.target.value) || 0))}
-                                        className="w-full pl-8 pr-4 py-3 rounded-xl bg-background-dark border border-white/10 text-white text-lg font-bold focus:ring-2 focus:ring-primary/50 outline-none"
-                                    />
-                                </div>
-                                <p className="text-xs text-slate-500 mt-2">Mínimo 10€, Máximo 5.000€</p>
-                            </div>
 
-                            <div className="bg-white/5 rounded-xl p-4 space-y-2 text-sm">
-                                <div className="flex justify-between text-slate-300">
-                                    <span>Subtotal (Saldo Añadido)</span>
-                                    <span>{rechargeAmount.toFixed(2)}€</span>
-                                </div>
-                                <div className="flex justify-between text-slate-300">
-                                    <span>IVA (21%)</span>
-                                    <span>{(rechargeAmount * 0.21).toFixed(2)}€</span>
-                                </div>
-                                <div className="border-t border-white/10 py-2 mt-2 flex justify-between font-bold text-white text-base">
-                                    <span>Total a Pagar</span>
-                                    <span>{(rechargeAmount * 1.21).toFixed(2)}€</span>
-                                </div>
-                            </div>
-
-                            <Button 
-                                onClick={handleRecharge} 
-                                disabled={recharging || rechargeAmount < 10 || rechargeAmount > 5000}
-                                className="w-full h-12 text-base shadow-glow"
-                            >
-                                {recharging ? 'Procesando Pago...' : `Pagar ${(rechargeAmount * 1.21).toFixed(2)}€`}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
             {/* Stats Overview */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <div className="bg-surface-dark/50 backdrop-blur-md border border-white/10 rounded-2xl p-6">
                     <div className="flex items-center gap-4">
                         <div className="p-3 bg-primary/20 rounded-xl text-primary">
@@ -407,16 +404,36 @@ export const Dashboard = () => {
                 </div>
 
                 <div className="bg-gradient-to-br from-blue-500/20 to-cyan-600/10 border border-blue-500/20 rounded-2xl p-6 relative overflow-hidden group">
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-blue-500/20 rounded-xl text-blue-400">
-                                <CreditCard className="w-6 h-6" />
-                            </div>
-                            <div>
-                                <p className="text-sm text-blue-300 font-medium">Saldo Wallet</p>
-                                <h3 className="text-2xl font-bold text-white">{balance.toFixed(2)}€</h3>
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-blue-500/20 rounded-xl text-blue-400">
+                            <CreditCard className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-sm text-blue-300 font-medium">Saldo Wallet</p>
+                            <h3 className="text-2xl font-bold text-white">{balance.toFixed(2)}€</h3>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Previsión Gastos (< 1024px) */}
+                <div className={`lg:hidden bg-surface-dark/50 backdrop-blur-md border rounded-2xl p-6 ${isCovered ? 'border-emerald-500/20' : 'border-amber-500/20'}`}>
+                    <div className="flex items-center gap-4">
+                        <div className={`p-3 rounded-xl ${isCovered ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'}`}>
+                            {isCovered ? <Check className="w-6 h-6" /> : <AlertTriangle className="w-6 h-6" />}
+                        </div>
+                        <div>
+                            <p className={`text-sm font-medium ${isCovered ? 'text-emerald-400' : 'text-amber-400'}`}>Previsión de Gastos</p>
+                            <div className="flex flex-col">
+                                <h3 className="text-2xl font-bold text-white">{totalNextMonth.toFixed(2)}€</h3>
+                                {!isCovered && (
+                                    <span className="text-xs text-amber-500 font-medium">
+                                        Saldo insuficiente
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>
+                </div>
 
             </div>
 
@@ -425,9 +442,9 @@ export const Dashboard = () => {
                 
                 {/* Companies List */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col min-[975px]:flex-row items-start min-[975px]:items-center justify-between gap-4">
                         <h2 className="text-xl font-bold text-white">Mis Organizaciones</h2>
-                         <Button variant="outline" className="text-sm h-9" onClick={() => { setStep(1); setShowNewCompanyModal(true); }}>
+                         <Button variant="outline" className="text-sm h-9 w-full min-[975px]:w-auto" onClick={() => { setStep(1); setShowNewCompanyModal(true); }}>
                             <Plus className="w-4 h-4 mr-2" />Nueva Organización
                         </Button>
                     </div>
@@ -456,8 +473,36 @@ export const Dashboard = () => {
                                 })();
 
                                 return (
-                                <div key={company.id} className="bg-surface-dark border border-white/5 hover:border-primary/50 transition-all rounded-xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between group gap-4">
-                                    <div className="flex-1">
+                                <div 
+                                    key={company.id} 
+                                    onClick={() => navigate(`/companies/${company.id}`)}
+                                    className="group relative bg-surface-dark border border-white/5 hover:border-primary/50 transition-all rounded-xl overflow-hidden flex flex-col cursor-pointer"
+                                >
+                                    
+                                    {/* Warning Banner */}
+                                    {company.individual_billing && (company.wallet_balance || 0) < price && (
+                                        <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-6 py-2 flex items-center justify-between" onClick={(e) => e.stopPropagation()}>
+                                            <div className="flex items-center gap-2 text-amber-500">
+                                                <AlertTriangle className="w-4 h-4" />
+                                                <span className="text-xs font-bold">Saldo insuficiente para renovación</span>
+                                            </div>
+                                            <Button 
+                                                size="sm"
+                                                className="h-6 text-xs bg-amber-500 text-black hover:bg-amber-600 border-0"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setRechargingCompany(company);
+                                                    // window.open('http://localhost:5174/settings', '_blank');
+                                                }}
+                                            >
+                                                Recargar
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {/* Content Container */}
+                                    <div className="p-6 flex flex-col min-[1370px]:flex-row items-start min-[1370px]:items-center justify-between gap-4 w-full">
+                                        <div className="flex-1">
                                         <div className="flex items-start gap-4 mb-2">
                                             {/* Logo o Avatar */}
                                             <div className="w-12 h-12 rounded-lg bg-gradient-to-br from-primary/20 to-purple-500/20 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
@@ -478,8 +523,20 @@ export const Dashboard = () => {
                                                 </div>
                                             </div>
                                         </div>
-                                        
-                                        <div className="flex items-center gap-6 mt-3">
+
+                                        {/* Stats Desktop (>= 1370px) */}
+                                        <div className="hidden min-[1370px]:flex items-center gap-6 mt-3">
+                                            {company.individual_billing && (
+                                                <div className={cn(
+                                                    "flex items-center gap-2 text-sm px-2 py-1 rounded-lg border",
+                                                    (company.wallet_balance || 0) < price
+                                                        ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
+                                                        : "text-blue-400 bg-blue-500/10 border-blue-500/20"
+                                                )}>
+                                                    <Wallet className="w-4 h-4" />
+                                                    <span><strong className="text-white">{company.wallet_balance?.toFixed(2)}€</strong></span>
+                                                </div>
+                                            )}
                                             <div className="flex items-center gap-2 text-sm text-slate-400 bg-white/5 px-2 py-1 rounded-lg">
                                                 <Users className="w-4 h-4 text-emerald-500" />
                                                 <span><strong className="text-white">{company.members_count}</strong> Empleados</span>
@@ -491,24 +548,60 @@ export const Dashboard = () => {
                                         </div>
                                     </div>
                                     
-                                    <div className="text-right flex flex-col items-end gap-3 w-full sm:w-auto border-t sm:border-t-0 border-white/5 pt-4 sm:pt-0">
-                                        <div className="text-xs text-slate-400 flex flex-col items-end gap-1">
-                                            <div className="flex items-center gap-2">
-                                                <span className="uppercase font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded text-[10px] tracking-wider">
-                                                    Plan {company.plan}
-                                                </span>
-                                                <span className="text-white font-medium">{price}€/mes</span>
+                                    {/* Actions & Stats Unified Container */}
+                                    <div className="text-right flex flex-col items-end gap-3 w-full min-[1370px]:w-auto border-t min-[1370px]:border-t-0 border-white/5 pt-4 min-[1370px]:pt-0">
+                                        
+                                        {/* Top Row: Stats (Mobile Left) + Plan Info (Right) */}
+                                        <div className="w-full flex justify-between items-start min-[1370px]:contents">
+                                            
+                                            {/* Stats Mobile (< 1370px) - Left aligned */}
+                                            <div className="min-[1370px]:hidden flex items-center gap-4 flex-wrap">
+                                                {company.individual_billing && (
+                                                    <div className={cn(
+                                                        "flex items-center gap-2 text-sm px-2 py-1 rounded-lg border",
+                                                        (company.wallet_balance || 0) < price
+                                                            ? "text-amber-500 bg-amber-500/10 border-amber-500/20"
+                                                            : "text-blue-400 bg-blue-500/10 border-blue-500/20"
+                                                    )}>
+                                                        <Wallet className="w-4 h-4" />
+                                                        <span><strong className="text-white">{company.wallet_balance?.toFixed(2)}€</strong></span>
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-2 text-sm text-slate-400 bg-white/5 px-2 py-1 rounded-lg">
+                                                    <Users className="w-4 h-4 text-emerald-500" />
+                                                    <span><strong className="text-white">{company.members_count}</strong> Empleados</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 text-sm text-slate-400 bg-white/5 px-2 py-1 rounded-lg">
+                                                    <Briefcase className="w-4 h-4 text-purple-400" />
+                                                    <span><strong className="text-white">1</strong> Managers</span>
+                                                </div>
                                             </div>
-                                            <span className="opacity-70">Próx. cargo: {nextPayment}</span>
+
+                                            {/* Plan Info - Always Right aligned (in desktop it flows naturally due to parent flex-col items-end) */}
+                                            <div className="text-xs text-slate-400 flex flex-col items-end gap-1">
+                                                <div className="flex items-center gap-2">
+                                                    <span className="uppercase font-bold text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded text-[10px] tracking-wider">
+                                                        Plan {company.plan}
+                                                    </span>
+                                                </div>
+                                                <span>Renueva: {nextPayment}</span>
+                                            </div>
                                         </div>
 
-                                        <Button 
-                                            variant="ghost" 
-                                            className="w-full sm:w-auto border border-white/10 hover:border-primary/50 hover:bg-primary/10 text-white"
-                                            onClick={() => window.open('http://localhost:5174', '_blank')}
-                                        >
-                                            Gestionar Organización <ArrowUpRight className="w-4 h-4 ml-2" />
-                                        </Button>
+                                        <div className="w-full flex justify-end">
+
+                                            
+                                            <Button 
+                                                variant="outline" 
+                                                size="sm"
+                                                onClick={(e) => { e.stopPropagation(); window.open('http://localhost:5174', '_blank'); }}
+                                                className="justify-center border-white/10 hover:bg-primary/10 hover:border-primary/50 text-slate-300 hover:text-white h-8 text-xs px-3 w-full min-[1370px]:w-auto" 
+                                            >
+                                                <ArrowUpRight className="w-3 h-3 mr-2" /> 
+                                                Manager
+                                            </Button>
+                                        </div>
+                                    </div>
                                     </div>
                                 </div>
                             )})
@@ -519,10 +612,11 @@ export const Dashboard = () => {
                 {/* Sidebar / Quick Actions */}
                 <div className="space-y-6">
                      <div className="bg-surface-dark border border-white/10 rounded-2xl p-6">
-                        <div className="flex items-center justify-between mb-6">
+                        <div className="flex flex-col min-[1370px]:flex-row min-[1370px]:items-center min-[1370px]:justify-between items-start gap-2 min-[1370px]:gap-0 mb-6">
                             <h3 className="text-lg font-bold text-white">Previsión de Gastos</h3>
                             {(() => {
                                 const totalNextMonth = companies.reduce((acc, c) => {
+                                    if (c.individual_billing) return acc;
                                     const prices: Record<string, number> = { 'basic': 29, 'pro': 49, 'ultimate': 99 };
                                     return acc + (prices[c.plan] || 0);
                                 }, 0);
@@ -538,6 +632,7 @@ export const Dashboard = () => {
                         
                         {(() => {
                             const totalNextMonth = companies.reduce((acc, c) => {
+                                if (c.individual_billing) return acc;
                                 const prices: Record<string, number> = { 'basic': 29, 'pro': 49, 'ultimate': 99 };
                                 return acc + (prices[c.plan] || 0);
                             }, 0);
@@ -559,7 +654,7 @@ export const Dashboard = () => {
                                             <span className="text-white font-medium">Estado</span>
                                             {isCovered ? (
                                                 <span className="text-emerald-400 text-sm font-bold flex items-center gap-1">
-                                                    <Check className="w-4 h-4" /> Pagos al día
+                                                    <Check className="w-4 h-4" /> Fondos suficientes
                                                 </span>
                                             ) : (
                                                 <span className="text-amber-400 text-sm font-bold flex items-center gap-1">
@@ -576,7 +671,12 @@ export const Dashboard = () => {
                                             </p>
                                             <Button 
                                                 size="sm" 
-                                                onClick={() => { setRechargeAmount(Math.max(10, Math.ceil(missing))); setShowRechargeModal(true); }}
+                                                onClick={() => { 
+                                                    const needed = Math.ceil(missing);
+                                                    const toRecharge = Math.max(10, needed);
+                                                    setRechargeInitialAmount(toRecharge);
+                                                    setIsRechargeModalOpen(true); 
+                                                }}
                                                 className="w-full bg-amber-600 hover:bg-amber-700 text-white border-0"
                                             >
                                                 Recargar Saldo
@@ -609,7 +709,8 @@ export const Dashboard = () => {
                                 <p className="text-slate-500 text-sm">No hay actividad reciente.</p>
                             ) : (
                                 invoices.slice(0, 3).map((inv: any) => {
-                                    const isRecharge = inv.concept.toLowerCase().includes('recarga');
+                                    const concept = inv.description || inv.invoice_concept || '';
+                                    const isRecharge = concept.toLowerCase().includes('recarga') || concept.toLowerCase().includes('stripe');
                                     return (
                                         <div key={inv.id} className="flex items-center justify-between text-sm p-3 hover:bg-white/5 rounded-lg transition-colors group">
                                             <div className="flex items-center gap-3">
@@ -617,7 +718,7 @@ export const Dashboard = () => {
                                                     {isRecharge ? <Plus className="w-4 h-4" /> : <ArrowRight className="w-4 h-4 -rotate-45" />}
                                                 </div>
                                                 <div>
-                                                    <p className="text-white font-medium truncate max-w-[140px]" title={inv.concept}>
+                                                    <p className="text-white font-medium truncate max-w-[140px]" title={inv.description || inv.invoice_concept}>
                                                         {isRecharge ? 'Recarga de Saldo' : 'Pago de Servicio'}
                                                     </p>
                                                     <p className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">
@@ -734,7 +835,7 @@ export const Dashboard = () => {
                                                 <input 
                                                     type="text"
                                                     value={formData.tax_id}
-                                                    onChange={(e) => setFormData({...formData, tax_id: e.target.value})}
+                                                    onChange={(e) => setFormData({...formData, tax_id: e.target.value.toUpperCase()})}
                                                     className="w-full px-4 py-3 rounded-xl bg-background-dark border border-white/10 text-white focus:ring-2 focus:ring-primary/50 outline-none placeholder:text-slate-600"
                                                     placeholder="Ej. B12345678"
                                                 />
@@ -885,8 +986,10 @@ export const Dashboard = () => {
                                         ) : (
                                             <Button 
                                                 onClick={() => { 
-                                                    setRechargeAmount(Math.max(10, Math.ceil(missing))); 
-                                                    setShowRechargeModal(true); 
+                                                    const needed = Math.ceil(missing);
+                                                    const toRecharge = Math.max(10, needed);
+                                                    setRechargeInitialAmount(toRecharge);
+                                                    setIsRechargeModalOpen(true); 
                                                 }}
                                                 className="min-w-[150px] bg-red-500 hover:bg-red-600 border-0"
                                             >
@@ -894,12 +997,34 @@ export const Dashboard = () => {
                                             </Button>
                                         );
                                     })()}
+
                                 </>
                             )}
                         </div>
                     </div>
                 </div>
             )}
+
+            <RechargeModal 
+                isOpen={isRechargeModalOpen || !!rechargingCompany}
+                onClose={() => {
+                    setIsRechargeModalOpen(false);
+                    setRechargingCompany(null);
+                }}
+                initialAmount={rechargeInitialAmount || 100}
+                companyId={rechargingCompany?.id}
+                walletName={rechargingCompany?.name}
+                walletImage={rechargingCompany?.logo_url}
+                onSuccess={() => {
+                   toastSuccess("Pago realizado correctamente. Actualizando saldo...");
+                   setTimeout(() => {
+                       loadDashboardData();
+                       setRechargingCompany(null);
+                       setIsRechargeModalOpen(false);
+                   }, 2500);
+                }}
+            />
         </div>
     );
 };
+

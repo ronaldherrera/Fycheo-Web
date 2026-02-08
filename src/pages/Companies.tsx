@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Building2, Users, Briefcase, MapPin, Plus, ArrowUpRight, Loader2, X, Upload, MoreVertical, Settings, Trash2 } from 'lucide-react';
+import { Users, MapPin, Plus, ArrowUpRight, X, Wallet, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useToast } from '../context/ToastContext';
+import { cn } from '../lib/utils';
+import { RechargeModal } from '../components/RechargeModal';
 
 interface Company {
     id: string;
@@ -15,6 +17,8 @@ interface Company {
     sector?: string;
     fiscal_name?: string;
     tax_id?: string;
+    wallet_balance?: number;
+    individual_billing?: boolean;
 }
 
 interface NewCompanyData {
@@ -41,15 +45,15 @@ export const Companies = () => {
     const { error: toastError, success: toastSuccess } = useToast();
     const [companies, setCompanies] = useState<Company[]>([]);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState<any>(null);
 
     // Wizard Create Company
     const [showNewCompanyModal, setShowNewCompanyModal] = useState(false);
-    const [step, setStep] = useState(1);
     const [formData, setFormData] = useState<NewCompanyData>(initialCompanyData);
-    const [selectedPlan, setSelectedPlan] = useState('basic');
     const [creating, setCreating] = useState(false);
     const [uploading, setUploading] = useState(false);
+
+    // Recharge Modal
+    const [rechargingCompany, setRechargingCompany] = useState<Company | null>(null);
 
     useEffect(() => {
         loadCompanies();
@@ -59,7 +63,6 @@ export const Companies = () => {
         try {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) return;
-            setUser(user);
 
             const { data: companiesData } = await supabase
                 .from('companies')
@@ -79,7 +82,9 @@ export const Companies = () => {
                     logo_url: c.logo_url,
                     sector: c.sector,
                     fiscal_name: c.fiscal_name,
-                    tax_id: c.tax_id
+                    tax_id: c.tax_id,
+                    wallet_balance: c.wallet_balance,
+                    individual_billing: c.individual_billing
                 }));
                 setCompanies(mapped);
             }
@@ -120,7 +125,7 @@ export const Companies = () => {
                 .from('companies')
                 .insert({
                     name: formData.name,
-                    plan: selectedPlan,
+                    plan: 'basic', // Default plan if selector removed
                     owner_id: user.id,
                     location: formData.location,
                     sector: formData.sector,
@@ -142,7 +147,6 @@ export const Companies = () => {
             toastSuccess("Empresa creada con éxito");
             setShowNewCompanyModal(false);
             setFormData(initialCompanyData);
-            setStep(1);
             loadCompanies();
         } catch (error: any) {
             toastError("Error: " + error.message);
@@ -155,7 +159,7 @@ export const Companies = () => {
 
     return (
         <div className="pt-8 pb-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto space-y-8">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col min-[900px]:flex-row min-[900px]:items-center justify-between gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-white mb-2">Mis Organizaciones</h1>
                     <p className="text-slate-400">Gestiona tus empresas y configuraciones</p>
@@ -165,59 +169,169 @@ export const Companies = () => {
                 </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {companies.map(company => (
-                    <div key={company.id} className="bg-surface-dark border border-white/10 rounded-2xl p-6 hover:border-primary/50 transition-all group relative">
-                        <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                             <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-white">
-                                <Settings className="w-4 h-4" />
-                             </Button>
-                        </div>
+            <div className="space-y-4">
+                {companies.map(company => {
+                    const prices: Record<string, number> = { 'basic': 29, 'pro': 49, 'ultimate': 99 };
+                    const price = prices[company.plan] || 0;
 
-                        <div className="flex items-start gap-4 mb-4">
-                            <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
-                                {company.logo_url ? (
-                                    <img src={company.logo_url} alt={company.name} className="w-full h-full object-cover" />
-                                ) : (
-                                    <span className="text-xl font-bold text-white tracking-tighter">
-                                        {company.name.substring(0, 2).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-bold text-white leading-tight mb-1">{company.name}</h3>
-                                <div className="flex items-center text-xs text-slate-500 uppercase tracking-wide">
-                                    <span className="bg-white/5 px-2 py-0.5 rounded text-slate-400 border border-white/5">Plan {company.plan}</span>
+                    return (
+                        <div key={company.id} className="group relative bg-surface-dark border border-white/10 rounded-xl overflow-hidden flex flex-col hover:border-primary/50 transition-all">
+                            
+                            {/* Warning Banner */}
+                            {company.individual_billing && (company.wallet_balance || 0) < price && (
+                                <div className="w-full bg-amber-500/10 border-b border-amber-500/20 px-6 py-2 flex items-center justify-between">
+                                    <div className="flex items-center gap-2 text-amber-500">
+                                        <AlertTriangle className="w-4 h-4" />
+                                        <span className="text-xs font-bold">ATENCIÓN: Tu saldo es insuficiente para las próximas renovaciones.</span>
+                                    </div>
+                                    <Button 
+                                        size="sm"
+                                        className="h-6 text-xs bg-amber-500 text-black hover:bg-amber-600 border-0"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setRechargingCompany(company);
+                                        }}
+                                    >
+                                        Recargar
+                                    </Button>
+                                </div>
+                            )}
+
+                            <div className="p-4 md:p-6 flex flex-col min-[1250px]:flex-row min-[1250px]:items-center justify-between gap-6">
+                                
+                                {/* Identidad de la Empresa */}
+                                <div className="flex items-center gap-4 flex-1 min-w-0">
+                                    <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-primary/20 to-purple-500/20 border border-white/10 flex items-center justify-center overflow-hidden shrink-0">
+                                        {company.logo_url ? (
+                                            <img src={company.logo_url} alt={company.name} className="w-full h-full object-cover" />
+                                        ) : (
+                                            <span className="text-2xl font-bold text-white tracking-tighter">
+                                                {company.name.substring(0, 2).toUpperCase()}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-bold text-white leading-tight mb-1">{company.name}</h3>
+                                        <div className="flex items-center text-xs text-slate-500 uppercase tracking-wide gap-2">
+                                            <span className="bg-white/5 px-2 py-0.5 rounded text-slate-400 border border-white/5">Plan {company.plan}</span>
+                                            {company.sector && <span>• {company.sector}</span>}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Detalles / Métricas (Escritorio > 1024px) */}
+                                <div className="flex items-center border-l border-r border-white/5 px-6 hidden min-[1250px]:flex">
+                                    <div className="flex items-center gap-8">
+                                        {company.individual_billing && (
+                                            <div className="flex flex-col gap-0.5 w-24">
+                                                <div className="flex items-center gap-1.5 text-slate-500">
+                                                    <Wallet className="w-3.5 h-3.5" />
+                                                    <span className="text-xs uppercase font-bold">Wallet</span>
+                                                </div>
+                                                <div>
+                                                    <span className={cn(
+                                                        "block w-full text-center px-2 py-0.5 rounded text-xs font-medium border truncate",
+                                                        (company.wallet_balance || 0) < price
+                                                            ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                                            : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                                    )}>
+                                                        {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(company.wallet_balance || 0)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                        <div className="flex flex-col gap-0.5 w-28">
+                                            <div className="flex items-center gap-1.5 text-slate-500">
+                                                <MapPin className="w-3.5 h-3.5" />
+                                                <span className="text-xs uppercase font-bold">Ubicación</span>
+                                            </div>
+                                            <div className="text-slate-300">
+                                                <span className="truncate block">{company.location || 'N/A'}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col gap-0.5 w-36">
+                                            <div className="flex items-center gap-1.5 text-slate-500">
+                                                <Users className="w-3.5 h-3.5" />
+                                                <span className="text-xs uppercase font-bold">Equipo</span>
+                                            </div>
+                                            <div className="text-slate-300">
+                                                <span className="whitespace-nowrap block">{company.members_count} Empleados</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                {/* Detalles Saldo Móvil (Tablet/Móvil < 1024px) */}
+                                {/* Detalles + Acciones Móvil (Tablet/Móvil < 1250px) */}
+                                <div className="min-[1250px]:hidden flex flex-col min-[825px]:flex-row justify-between gap-4 border-t border-white/5 pt-4 mt-4 w-full">
+                                    {/* Detalles Horizontal */}
+                                    <div className="flex items-center gap-6 overflow-x-auto pb-1 flex-1 hide-scrollbar w-full">
+                                        {company.individual_billing && (
+                                            <div className="space-y-1 shrink-0">
+                                                <span className="text-slate-500 text-xs uppercase font-bold block">Wallet</span>
+                                                <span className={cn(
+                                                    "inline-block px-3 py-1 rounded text-sm font-medium border",
+                                                    (company.wallet_balance || 0) < price
+                                                        ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                                        : "bg-blue-500/10 text-blue-400 border-blue-500/20"
+                                                )}>
+                                                    {new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(company.wallet_balance || 0)}
+                                                </span>
+                                            </div>
+                                        )}
+                                        <div className="space-y-1 shrink-0">
+                                            <span className="text-slate-500 text-xs uppercase font-bold block">Ubicación</span>
+                                            <span className="text-white text-sm block truncate">{company.location || 'N/A'}</span>
+                                        </div>
+                                        <div className="space-y-1 shrink-0">
+                                            <span className="text-slate-500 text-xs uppercase font-bold block">Equipo</span>
+                                            <span className="text-white text-sm block">{company.members_count} Empleados</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Acciones: Horizontal en <825, Vertical en >=825 */}
+                                    <div className="flex flex-row min-[825px]:flex-col gap-2 shrink-0 border-t min-[825px]:border-t-0 min-[825px]:border-l border-white/5 pt-4 min-[825px]:pt-0 min-[825px]:pl-4 w-full min-[825px]:w-auto">
+                                        <Button 
+                                            variant="outline" 
+                                            className="justify-center border-white/10 hover:bg-primary/10 hover:border-primary/50 text-slate-300 hover:text-white h-8 text-xs px-3 w-full flex-1 min-[825px]:flex-none"
+                                            onClick={() => window.open('http://localhost:5174', '_blank')}
+                                        >
+                                            <ArrowUpRight className="w-3 h-3 mr-2" /> 
+                                            Manager
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            className="justify-center text-slate-400 hover:text-white hover:bg-white/5 h-8 text-xs px-3 w-full flex-1 min-[825px]:flex-none"
+                                            onClick={() => window.location.href = `/companies/${company.id}`}
+                                        >
+                                            Gestionar
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Acciones Desktoop (> 1250px) */}
+                                <div className="hidden min-[1250px]:flex flex-col gap-2 pt-0 w-auto shrink-0">
+                                    <Button 
+                                        variant="outline" 
+                                        className="w-full justify-center border-white/10 hover:bg-primary/10 hover:border-primary/50 text-slate-300 hover:text-white"
+                                        onClick={() => window.open('http://localhost:5174', '_blank')}
+                                    >
+                                        <ArrowUpRight className="w-4 h-4 mr-2" /> 
+                                        Manager
+                                    </Button>
+                                    
+                                    <Button 
+                                        variant="ghost" 
+                                        className="w-full justify-center text-slate-400 hover:text-white hover:bg-white/5"
+                                        onClick={() => window.location.href = `/companies/${company.id}`}
+                                    >
+                                        Gestionar
+                                    </Button>
                                 </div>
                             </div>
                         </div>
-
-                        <div className="space-y-3 mb-6">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-400 flex items-center gap-2"><MapPin className="w-4 h-4" /> Ubicación</span>
-                                <span className="text-white">{company.location || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-400 flex items-center gap-2"><Briefcase className="w-4 h-4" /> Sector</span>
-                                <span className="text-white">{company.sector || 'N/A'}</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-slate-400 flex items-center gap-2"><Users className="w-4 h-4" /> Empleados</span>
-                                <span className="text-white font-medium">{company.members_count}</span>
-                            </div>
-                        </div>
-
-                        <div className="pt-4 border-t border-white/5 flex gap-2">
-                             <Button 
-                                variant="outline" 
-                                className="flex-1 text-xs"
-                                onClick={() => window.open('http://localhost:5174', '_blank')}
-                            >
-                                <ArrowUpRight className="w-4 h-4 mr-2" /> Ir al Manager
-                            </Button>
-                        </div>
-                    </div>
-                ))}
+                    )
+                })}
             </div>
 
              {/* Modal Wizard (Simplificado) */}
@@ -260,6 +374,21 @@ export const Companies = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {/* Modal Recharge (Real Stripe) */}
+            {rechargingCompany && (
+                <RechargeModal
+                    isOpen={!!rechargingCompany}
+                    onClose={() => setRechargingCompany(null)}
+                    onSuccess={() => {
+                        loadCompanies();
+                        setRechargingCompany(null);
+                    }}
+                    companyId={rechargingCompany.id}
+                    walletName={rechargingCompany.name}
+                    walletImage={rechargingCompany.logo_url}
+                    initialAmount={100}
+                />
             )}
         </div>
     );
