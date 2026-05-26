@@ -59,8 +59,8 @@ export const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <Link to="/" className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-purple-400">
-              Fycheo
+            <Link to="/" className="flex items-center">
+              <img src="/fycheo_blanco.svg" alt="Fycheo" className="h-8 object-contain" />
             </Link>
           </div>
 
