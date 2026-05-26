@@ -101,5 +101,6 @@ DO $$
 BEGIN
     IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'time_entries') THEN
         EXECUTE 'CREATE POLICY "Access Own Time Entries" ON time_entries FOR ALL USING (user_id = auth.uid())';
+        EXECUTE 'CREATE POLICY "Access Coworkers Time Entries" ON time_entries FOR SELECT TO authenticated USING (is_member_of(company_id))';
     END IF;
 END $$;

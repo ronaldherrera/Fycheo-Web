@@ -11,6 +11,12 @@ ALTER TABLE invoices DISABLE ROW LEVEL SECURITY;
 ALTER TABLE user_payment_methods DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS transactions DISABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS time_entries DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS tasks DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS shifts DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS absences DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS teams DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS ephemeral_messages DISABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS company_holidays DISABLE ROW LEVEL SECURITY;
 
 -- 2. LIMPIEZA TOTAL DE POLÍTICAS (Eliminar basura anterior)
 DO $$ 
@@ -64,6 +70,12 @@ ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_payment_methods ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS transactions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE IF EXISTS time_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS tasks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS shifts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS absences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS teams ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS ephemeral_messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE IF EXISTS company_holidays ENABLE ROW LEVEL SECURITY;
 
 
 -- 5. APLICAR NUEVAS POLÍTICAS DE SEGURIDAD (Reglas de acceso)
@@ -121,4 +133,81 @@ END $$;
 -- === F. TABLA PAYMENT METHODS ===
 CREATE POLICY "Manage Own Payment Methods" ON user_payment_methods
 FOR ALL USING (user_id = auth.uid());
+
+
+-- === G. TABLA TIME ENTRIES ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'time_entries') THEN
+        EXECUTE 'CREATE POLICY "Manage Own Time Entries" ON time_entries FOR ALL USING (user_id = auth.uid())';
+        EXECUTE 'CREATE POLICY "Members View Company Time Entries" ON time_entries FOR SELECT TO authenticated USING (is_member_of(company_id))';
+    END IF;
+END $$;
+
+
+-- === H. TABLA TASKS ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'tasks') THEN
+        EXECUTE 'CREATE POLICY "Tasks: ver tareas propias o de empresa" ON tasks FOR SELECT USING (assigned_to = auth.uid() OR created_by = auth.uid() OR is_member_of(company_id))';
+        EXECUTE 'CREATE POLICY "Tasks: crear tarea (admin/hr/manager)" ON tasks FOR INSERT WITH CHECK (created_by = auth.uid() AND (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = tasks.company_id AND role IN (''admin'', ''hr'', ''manager'') AND accepted = true)))';
+        EXECUTE 'CREATE POLICY "Tasks: actualizar tareas" ON tasks FOR UPDATE USING (assigned_to = auth.uid() OR created_by = auth.uid() OR (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = tasks.company_id AND role IN (''admin'', ''hr'', ''manager'') AND accepted = true)))';
+        EXECUTE 'CREATE POLICY "Tasks: borrar tarea" ON tasks FOR DELETE USING (created_by = auth.uid() OR (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = tasks.company_id AND role IN (''admin'', ''hr'') AND accepted = true)))';
+    END IF;
+END $$;
+
+
+-- === I. TABLA SHIFTS ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'shifts') THEN
+        EXECUTE 'CREATE POLICY "Admins and HR can view all shifts of their company" ON shifts FOR SELECT USING (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = shifts.company_id AND role IN (''admin'', ''hr'')))';
+        EXECUTE 'CREATE POLICY "Admins and HR can manage all shifts of their company" ON shifts FOR ALL USING (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = shifts.company_id AND role IN (''admin'', ''hr'')))';
+        EXECUTE 'CREATE POLICY "Managers can view shifts of their team" ON shifts FOR SELECT USING (EXISTS (SELECT 1 FROM company_members me JOIN company_members target ON me.team_id = target.team_id WHERE me.user_id = auth.uid() AND me.role = ''manager'' AND target.user_id = shifts.employee_id AND target.company_id = shifts.company_id))';
+        EXECUTE 'CREATE POLICY "Managers can manage shifts of their team" ON shifts FOR ALL USING (EXISTS (SELECT 1 FROM company_members me JOIN company_members target ON me.team_id = target.team_id WHERE me.user_id = auth.uid() AND me.role = ''manager'' AND target.user_id = shifts.employee_id AND target.company_id = shifts.company_id))';
+        EXECUTE 'CREATE POLICY "Employees can view their own shifts" ON shifts FOR SELECT USING (auth.uid() = employee_id)';
+    END IF;
+END $$;
+
+
+-- === J. TABLA ABSENCES ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'absences') THEN
+        EXECUTE 'CREATE POLICY "Admins and HR can manage absences" ON absences FOR ALL USING (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = absences.company_id AND role IN (''admin'', ''hr'')))';
+        EXECUTE 'CREATE POLICY "Managers can view team absences" ON absences FOR SELECT USING (EXISTS (SELECT 1 FROM company_members me JOIN company_members target ON me.team_id = target.team_id WHERE me.user_id = auth.uid() AND me.role = ''manager'' AND target.user_id = absences.employee_id AND target.company_id = absences.company_id))';
+        EXECUTE 'CREATE POLICY "Employees can view their own absences" ON absences FOR SELECT USING (auth.uid() = employee_id)';
+    END IF;
+END $$;
+
+
+-- === K. TABLA TEAMS ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'teams') THEN
+        EXECUTE 'CREATE POLICY "Users can view teams of their company" ON teams FOR SELECT USING (is_member_of(company_id))';
+        EXECUTE 'CREATE POLICY "Admins and HR can manage teams" ON teams FOR ALL USING (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members WHERE user_id = auth.uid() AND company_id = teams.company_id AND role IN (''admin'', ''hr'')))';
+    END IF;
+END $$;
+
+
+-- === L. TABLA EPHEMERAL MESSAGES ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'ephemeral_messages') THEN
+        EXECUTE 'CREATE POLICY "Chat: ver propios mensajes" ON ephemeral_messages FOR SELECT USING ((sender_id = auth.uid() OR receiver_id = auth.uid()) AND expires_at > now())';
+        EXECUTE 'CREATE POLICY "Chat: enviar mensaje" ON ephemeral_messages FOR INSERT WITH CHECK (sender_id = auth.uid() AND EXISTS (SELECT 1 FROM company_members cm WHERE cm.user_id = auth.uid() AND cm.company_id = company_id AND cm.accepted = true) AND EXISTS (SELECT 1 FROM company_members cm2 WHERE cm2.user_id = receiver_id AND cm2.company_id = company_id AND cm2.accepted = true))';
+        EXECUTE 'CREATE POLICY "Chat: borrar al leer" ON ephemeral_messages FOR DELETE USING (receiver_id = auth.uid() OR sender_id = auth.uid())';
+    END IF;
+END $$;
+
+
+-- === M. TABLA COMPANY HOLIDAYS ===
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'company_holidays') THEN
+        EXECUTE 'CREATE POLICY "Los usuarios pueden ver los festivos de su empresa" ON company_holidays FOR SELECT USING (is_member_of(company_id))';
+        EXECUTE 'CREATE POLICY "Solo admin/hr pueden gestionar festivos" ON company_holidays FOR ALL USING (is_owner_of(company_id) OR EXISTS (SELECT 1 FROM company_members cm WHERE cm.company_id = company_holidays.company_id AND cm.user_id = auth.uid() AND cm.role IN (''admin'', ''hr'')))';
+    END IF;
+END $$;
 
