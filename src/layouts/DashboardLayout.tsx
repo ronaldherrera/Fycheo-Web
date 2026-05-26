@@ -13,18 +13,15 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { Button } from '../components/ui/Button';
 
 export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
-    const [user, setUser] = useState<any>(null);
 
     useEffect(() => {
         supabase.auth.getUser().then(({ data: { user } }) => {
             if (!user) navigate('/login');
-            setUser(user);
         });
     }, [navigate]);
 
