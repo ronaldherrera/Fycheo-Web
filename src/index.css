@@ -4,6 +4,23 @@
 
 @layer base {
   body {
-    @apply antialiased;
+    @apply antialiased bg-background-light dark:bg-background-dark text-slate-900 dark:text-text-primary font-display overflow-x-hidden;
+  }
+
+  /* Scrollbar personalizado */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-background-dark;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20 transition-colors;
+  }
+}
+
+@layer utilities {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-purple-600;
   }
 }
