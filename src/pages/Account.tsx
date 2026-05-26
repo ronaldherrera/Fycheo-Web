@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { User as UserIcon, Shield, LogOut, Lock, Key, CreditCard, Plus, Trash2, Smartphone, FileText, Loader2, X } from 'lucide-react';
+import { User as UserIcon, Shield, LogOut, Key, CreditCard, Plus, Trash2, Smartphone, FileText, Loader2, X } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
