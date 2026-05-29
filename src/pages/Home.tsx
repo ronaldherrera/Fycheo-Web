@@ -83,7 +83,6 @@ const ManagerDashboardMockup = () => {
   const [activeItem, setActiveItem] = useState('Resumen');
 
   const maxDensity = Math.max(...timeline24h, 1);
-  const maxFichajes = Math.max(...chartData7dias.map(d => d.fichajes), 1);
 
   return (
     <div
