@@ -22,9 +22,9 @@ export const Login = () => {
     if (isRecovering) {
       try {
         const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const resetUrl = isLocal 
-          ? 'http://localhost:3002/restablecer-contraseña' 
-          : 'https://fycheo.es/restablecer-contraseña';
+        const resetUrl = isLocal
+          ? 'http://localhost:3002/restablecer-contrasena'
+          : 'https://fycheo.es/restablecer-contrasena';
 
         const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
           redirectTo: resetUrl,
