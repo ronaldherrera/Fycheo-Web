@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle2, Clock, Users, Calendar, LayoutDashboard, Target, TrendingUp, Megaphone, Smartphone, Bell, ChevronDown, Check, Activity, ShieldCheck, XCircle, MessageSquare, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, Users, Calendar, LayoutDashboard, Smartphone, Bell, ChevronDown, Check, ShieldCheck, XCircle, MessageSquare, AlertTriangle } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';

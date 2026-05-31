@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
-import { Mail, Lock, AlertCircle, ArrowRight } from 'lucide-react';
+import { Mail, Lock, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export const Login = () => {
@@ -10,25 +10,47 @@ export const Login = () => {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRecovering, setIsRecovering] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMessage(null);
+
+    if (isRecovering) {
+      try {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const resetUrl = isLocal 
+          ? 'http://localhost:3002/restablecer-contraseña' 
+          : 'https://fycheo.es/restablecer-contraseña';
+
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
+          redirectTo: resetUrl,
+        });
+
+        if (resetError) throw resetError;
+
+        setSuccessMessage('Si el correo electrónico está registrado, recibirás un enlace para restablecer tu contraseña en unos minutos.');
+      } catch (err: any) {
+        console.error(err);
+        setError(err.message || 'Error al enviar el correo de recuperación.');
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
 
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
       if (error) throw error;
 
       if (data.user) {
-        // Redirigir al panel de cuenta o dashboard
-        // En un entorno real, esto podría redirigir al subdominio del manager
-        // Por ahora redirigimos a la página de cuenta interna
-        // Por ahora redirigimos al dashboard de gestión global
         window.location.href = '/dashboard';
       }
     } catch (err: any) {
@@ -43,13 +65,19 @@ export const Login = () => {
     <div className="min-h-screen bg-slate-900 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <h2 className="mt-6 text-center text-3xl font-extrabold text-white">
-          Iniciar sesión en Fycheo
+          {isRecovering ? 'Recuperar contraseña' : 'Iniciar sesión en Fycheo'}
         </h2>
         <p className="mt-2 text-center text-sm text-slate-400">
-          ¿No tienes cuenta?{' '}
-          <Link to="/register" className="font-medium text-primary hover:text-primary-light transition-colors">
-            Regístrate gratis
-          </Link>
+          {isRecovering ? (
+            <span>Ingresa tu correo para recibir un enlace de recuperación</span>
+          ) : (
+            <>
+              ¿No tienes cuenta?{' '}
+              <Link to="/register" className="font-medium text-primary hover:text-primary-light transition-colors">
+                Regístrate gratis
+              </Link>
+            </>
+          )}
         </p>
       </div>
 
@@ -64,6 +92,19 @@ export const Login = () => {
                   </div>
                   <div className="ml-3">
                     <h3 className="text-sm font-medium text-red-400">{error}</h3>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="rounded-md bg-emerald-500/10 p-4">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <CheckCircle2 className="h-5 w-5 text-emerald-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-emerald-400">{successMessage}</h3>
                   </div>
                 </div>
               </div>
@@ -91,46 +132,74 @@ export const Login = () => {
               </div>
             </div>
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300">
-                Contraseña
-              </label>
-              <div className="mt-1 relative rounded-md shadow-sm">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-slate-500" aria-hidden="true" />
+            {!isRecovering && (
+              <div>
+                <label htmlFor="password" className="block text-sm font-medium text-slate-300">
+                  Contraseña
+                </label>
+                <div className="mt-1 relative rounded-md shadow-sm">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <Lock className="h-5 w-5 text-slate-500" aria-hidden="true" />
+                  </div>
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="block w-full pl-10 rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 placeholder:text-slate-500"
+                    placeholder="••••••••"
+                  />
                 </div>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 rounded-md border-0 bg-white/5 py-1.5 text-white shadow-sm ring-1 ring-inset ring-white/10 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6 placeholder:text-slate-500"
-                  placeholder="••••••••"
-                />
               </div>
-            </div>
+            )}
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <input
-                  id="remember-me"
-                  name="remember-me"
-                  type="checkbox"
-                  className="h-4 w-4 rounded border-slate-600 bg-white/5 text-primary focus:ring-primary ring-offset-slate-900"
-                />
-                <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-300">
-                  Recordarme
-                </label>
-              </div>
+              {!isRecovering ? (
+                <>
+                  <div className="flex items-center">
+                    <input
+                      id="remember-me"
+                      name="remember-me"
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-slate-600 bg-white/5 text-primary focus:ring-primary ring-offset-slate-900"
+                    />
+                    <label htmlFor="remember-me" className="ml-2 block text-sm text-slate-300">
+                      Recordarme
+                    </label>
+                  </div>
 
-              <div className="text-sm">
-                <a href="#" className="font-medium text-primary hover:text-primary-light transition-colors">
-                  ¿Olvidaste tu contraseña?
-                </a>
-              </div>
+                  <div className="text-sm">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsRecovering(true);
+                        setError(null);
+                        setSuccessMessage(null);
+                      }}
+                      className="font-medium text-primary hover:text-primary-light transition-colors bg-transparent border-0 outline-none p-0 cursor-pointer"
+                    >
+                      ¿Olvidaste tu contraseña?
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="text-sm w-full text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRecovering(false);
+                      setError(null);
+                      setSuccessMessage(null);
+                    }}
+                    className="font-medium text-primary hover:text-primary-light transition-colors bg-transparent border-0 outline-none p-0 cursor-pointer"
+                  >
+                    ¿Ya recuerdas tu contraseña? Iniciar sesión
+                  </button>
+                </div>
+              )}
             </div>
 
             <div>
@@ -139,7 +208,9 @@ export const Login = () => {
                 className="w-full flex justify-center py-2 px-4"
                 disabled={loading}
               >
-                {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+                {loading 
+                  ? (isRecovering ? 'Enviando...' : 'Iniciando sesión...') 
+                  : (isRecovering ? 'Enviar Enlace de Recuperación' : 'Iniciar Sesión')}
                 {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
               </Button>
             </div>

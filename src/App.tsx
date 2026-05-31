@@ -6,6 +6,7 @@ import { Home } from './pages/Home';
 import { Pricing } from './pages/Pricing';
 import { Register } from './pages/Register';
 import { Login } from './pages/Login';
+import { ResetPassword } from './pages/ResetPassword';
 import { Account } from './pages/Account';
 import { Dashboard } from './pages/Dashboard';
 
@@ -41,6 +42,8 @@ function App() {
             <Route path="pricing" element={<Pricing />} />
             <Route path="register" element={<Register />} />
             <Route path="login" element={<Login />} />
+            <Route path="restablecer-contraseña" element={<ResetPassword />} />
+            <Route path="restablecer-contrasena" element={<ResetPassword />} />
             
             <Route path="features/time-tracking" element={<TimeTracking />} />
             <Route path="features/vacations" element={<Vacations />} />
