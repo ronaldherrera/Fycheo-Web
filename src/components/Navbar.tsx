@@ -14,6 +14,10 @@ export const Navbar = () => {
   const [user, setUser] = useState<any>(null);
   const location = useLocation();
 
+  if (location.pathname === '/restablecer-contrasena') {
+    return null;
+  }
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);
