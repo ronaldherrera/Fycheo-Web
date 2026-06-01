@@ -241,6 +241,20 @@ export const CompaniesSettings = () => {
                     full_name: m.profiles?.full_name
                 }));
                 setMembers(mappedMembers);
+
+                // Validar acceso administrativo
+                const { data: { user: currentUser } } = await supabase.auth.getUser();
+                if (currentUser) {
+                    const isOwner = companyData.owner_id === currentUser.id;
+                    const myMember = membersData?.find((m: any) => m.user_id === currentUser.id);
+                    const isAdmin = myMember && ['admin', 'hr', 'manager'].includes(myMember.role);
+                    
+                    if (!isOwner && !isAdmin) {
+                        toastError("Acceso denegado. No tienes permisos para configurar esta organización.");
+                        navigate('/companies');
+                        return;
+                    }
+                }
             }
 
             // Check for wallet history to keep tab visible

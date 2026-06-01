@@ -16,13 +16,28 @@ import { cn } from '../lib/utils';
 
 export const DashboardLayout = () => {
     const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+    const [isValidating, setIsValidating] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
 
     useEffect(() => {
-        supabase.auth.getUser().then(({ data: { user } }) => {
-            if (!user) navigate('/login');
-        });
+        const checkAuth = async () => {
+            try {
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) {
+                    navigate('/login');
+                    return;
+                }
+
+                setIsValidating(false);
+            } catch (err) {
+                console.error("Error al validar el rol de usuario:", err);
+                await supabase.auth.signOut();
+                navigate('/login');
+            }
+        };
+
+        checkAuth();
     }, [navigate]);
 
     const navigation = [
@@ -37,6 +52,18 @@ export const DashboardLayout = () => {
         await supabase.auth.signOut();
         navigate('/');
     };
+
+    if (isValidating) {
+        return (
+            <div className="min-h-screen flex flex-col items-center justify-center bg-background-dark text-white">
+                <div className="relative w-16 h-16">
+                    <div className="absolute inset-0 rounded-full border-4 border-white/10"></div>
+                    <div className="absolute inset-0 rounded-full border-4 border-l-primary border-t-primary animate-spin"></div>
+                </div>
+                <p className="mt-4 text-slate-400 font-medium animate-pulse">Verificando credenciales...</p>
+            </div>
+        );
+    }
 
     return (
         <div className="min-h-screen bg-background-dark flex">

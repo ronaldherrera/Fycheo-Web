@@ -105,22 +105,28 @@ export const Dashboard = () => {
             
             if (profile) setBalance(profile.wallet_balance || 0);
 
-            // 2. Obtener empresas
             // 2. Obtener empresas con miembros
             const { data: companiesData } = await supabase
                 .from('companies')
                 .select(`
                     *,
                     company_members (
+                        user_id,
                         role
                     )
                 `);
             
             if (companiesData) {
-                const mapped = companiesData.map((c: any) => {
-                    // Contar solo los que NO son admin (o son employee)
-                    // Asumimos que el gestor es 'admin' u 'owner'.
-                    // El usuario pide "solo los que tienen la app vinculada", se entiende rol 'employee'.
+                // Filtrar solo las empresas donde el usuario actual es dueño o tiene un rol administrativo
+                const managedCompanies = companiesData.filter((c: any) => {
+                    const isOwner = c.owner_id === user.id;
+                    const myMember = c.company_members?.find((m: any) => m.user_id === user.id);
+                    const isAdmin = myMember && ['admin', 'hr', 'manager'].includes(myMember.role);
+                    return isOwner || isAdmin;
+                });
+
+                const mapped = managedCompanies.map((c: any) => {
+                    // Contar solo los que son empleados en la organización
                     const employeeCount = c.company_members?.filter((m: any) => m.role === 'employee').length || 0;
                     
                     return {

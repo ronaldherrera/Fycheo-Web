@@ -43,12 +43,12 @@ export const Login = () => {
     }
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
       });
 
-      if (error) throw error;
+      if (signInError) throw signInError;
 
       if (data.user) {
         window.location.href = '/dashboard';

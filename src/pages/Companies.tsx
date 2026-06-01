@@ -68,11 +68,22 @@ export const Companies = () => {
                 .from('companies')
                 .select(`
                     *,
-                    company_members ( role )
+                    company_members ( 
+                        user_id,
+                        role 
+                    )
                 `);
             
             if (companiesData) {
-                const mapped = companiesData.map((c: any) => ({
+                // Filtrar solo las empresas donde el usuario actual es dueño o tiene un rol administrativo
+                const managedCompanies = companiesData.filter((c: any) => {
+                    const isOwner = c.owner_id === user.id;
+                    const myMember = c.company_members?.find((m: any) => m.user_id === user.id);
+                    const isAdmin = myMember && ['admin', 'hr', 'manager'].includes(myMember.role);
+                    return isOwner || isAdmin;
+                });
+
+                const mapped = managedCompanies.map((c: any) => ({
                     id: c.id,
                     name: c.name,
                     plan: c.plan,
