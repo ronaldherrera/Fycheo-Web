@@ -1,8 +1,12 @@
-import { CheckCircle2, Users, Calendar, LayoutDashboard, Smartphone, Bell, ChevronDown, Check, ShieldCheck, XCircle, MessageSquare, AlertTriangle } from 'lucide-react';
+import { CheckCircle2, ChevronDown, XCircle, MessageSquare, FileText, Shield, ListTodo, ArrowRight, UploadCloud, FolderOpen, Mail, AlertTriangle, Building2, Smartphone, Clock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useState } from 'react';
-import { ManagerDashboardMockup, AppEmpleadoMockup, DemoModal, ScaledPreview } from '../components/Mockups';
+import { useState, useEffect } from 'react';
+import { DemoModal } from '../components/Mockups';
+import { ImagePlaceholder } from '../components/ui/ImagePlaceholder';
+import { SEOHead } from '../components/SEOHead';
+import { cn } from '../lib/utils';
+
 
 const faqs = [
   { q: "¿Es obligatorio el control horario en España?", a: "Sí, desde mayo de 2019 el Estatuto de los Trabajadores (RD-ley 8/2019) obliga a todas las empresas a registrar la jornada laboral de sus empleados diariamente." },
@@ -10,26 +14,458 @@ const faqs = [
   { q: "¿Qué pasa si un empleado se olvida de fichar?", a: "El empleado puede solicitar una corrección de fichaje desde su app, que llegará al mánager para su aprobación con un solo clic. Todo queda auditado." },
   { q: "¿Se puede fichar desde el teléfono móvil?", a: "Sí, los empleados disponen de una app nativa para iOS y Android desde la que pueden fichar, pedir vacaciones y revisar sus turnos." },
   { q: "¿Ofrecéis fichaje por geolocalización?", a: "Sí, puedes configurar la geolocalización obligatoria al fichar, e incluso definir áreas geográficas válidas (Geofencing)." },
-  { q: "¿Cómo se gestionan los turnos rotativos?", a: "Nuestro planificador avanzado te permite crear patrones de turnos y asignarlos masivamente en segundos, evitando solapamientos y excesos de jornada." },
-  { q: "¿Puedo importar mis datos desde Excel?", a: "Sí, contamos con un importador masivo que te permite cargar toda tu plantilla, calendarios y saldos de vacaciones en minutos." },
-  { q: "¿Los empleados pueden ver cuántos días de vacaciones les quedan?", a: "Sí, desde la app móvil cada empleado tiene acceso a su saldo actualizado de vacaciones, evitando cientos de preguntas a Recursos Humanos." },
-  { q: "¿Cómo funciona la aprobación de ausencias?", a: "Cuando un empleado solicita una ausencia (vacaciones, baja, permiso), los responsables reciben una notificación y pueden aprobarla o denegarla al instante. El calendario general se actualiza automáticamente." },
-  { q: "¿Puedo tener diferentes horarios para diferentes equipos?", a: "Por supuesto. Puedes crear ilimitados perfiles de horario y asignarlos a diferentes centros de trabajo, departamentos o empleados individuales." },
-  { q: "¿Fycheo se integra con mi programa de nóminas (A3, Sage, etc.)?", a: "Nuestros reportes son exportables a Excel y CSV en el formato estándar compatible con el 99% del software de gestión laboral del mercado." },
-  { q: "¿Qué pasa si me quedo sin internet?", a: "Nuestra app de fichaje cuenta con modo offline. Los empleados pueden fichar sin conexión y los datos se sincronizarán automáticamente al recuperar la señal." },
-  { q: "¿Cómo se gestionan las horas extras?", a: "El sistema calcula automáticamente las horas extraordinarias cruzando el horario teórico con los fichajes reales, mostrando el saldo a favor o en contra." },
-  { q: "¿Puedo usar una tablet como punto de fichaje en la pared?", a: "Sí, ofrecemos un modo 'Kiosco' que convierte cualquier tablet (iPad o Android) en un reloj de fichar seguro mediante PIN de empleado." },
-  { q: "¿Qué nivel de soporte ofrecéis?", a: "Ofrecemos soporte técnico en español por email y chat para todos los planes, y un Key Account Manager dedicado para planes Enterprise." },
+  { q: "¿Puedo usar una tablet como punto de fichaje en la pared?", a: "Sí, ofrecemos un modo 'Kiosko' que convierte cualquier tablet (iPad o Android) en un reloj de fichar seguro mediante el DNI del empleado." },
   { q: "¿Tengo que firmar permanencia?", a: "No, en nuestros planes mensuales puedes cancelar cuando quieras sin penalización. También ofrecemos planes anuales con descuentos si prefieres comprometerte a largo plazo." },
-  { q: "¿Están seguros mis datos?", a: "Utilizamos infraestructura cloud de grado bancario (AWS), encriptación de extremo a extremo y cumplimos rigurosamente con la RGPD europea." },
-  { q: "¿Hay un límite de empleados?", a: "Fycheo escala con tu negocio. Tenemos planes desde 5 empleados hasta grandes corporaciones con miles de trabajadores en múltiples países." },
-  { q: "¿Cuánto se tarda en implementar el software?", a: "A diferencia de otros ERPs pesados, una empresa promedio configura todo y empieza a usar Fycheo en menos de 24 horas." },
   { q: "¿Puedo probarlo antes de pagar?", a: "Sí, te ofrecemos 14 días de prueba totalmente gratis y sin necesidad de introducir tu tarjeta de crédito." }
+];
+
+// ==========================================
+// SIMULACIONES INTERACTIVAS PARA LA HOME
+// ==========================================
+
+const NominasSimulation = () => {
+  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => {
+        if (prev === 0) {
+          setProgress(0);
+          return 1;
+        } else if (prev === 1) {
+          return 2;
+        } else {
+          return 0;
+        }
+      });
+    }, 4500);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (step === 1) {
+      const progInterval = setInterval(() => {
+        setProgress((p) => {
+          if (p >= 100) {
+            clearInterval(progInterval);
+            return 100;
+          }
+          return p + 10;
+        });
+      }, 200);
+      return () => clearInterval(progInterval);
+    }
+  }, [step]);
+
+  return (
+    <div className="w-full h-64 bg-[#111625] rounded-xl border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+        <div className="flex items-center space-x-2">
+          <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
+          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
+          <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono">BulkNominas v2.1</span>
+      </div>
+
+      <div className="flex-1 flex flex-col justify-center items-center my-4">
+        {step === 0 && (
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="flex flex-col items-center justify-center border-2 border-dashed border-primary/30 rounded-lg p-5 w-full cursor-pointer hover:bg-primary/5 transition-colors"
+          >
+            <UploadCloud className="w-8 h-8 text-primary-light mb-2 animate-bounce" />
+            <p className="text-xs text-white font-semibold">Arrastra aquí el PDF de la gestoría</p>
+            <p className="text-[10px] text-slate-500 mt-1">nominas_junio.pdf (4.2 MB)</p>
+          </motion.div>
+        )}
+
+        {step === 1 && (
+          <div className="w-full space-y-3">
+            <div className="flex justify-between items-center text-xs text-slate-300">
+              <span>Procesando PDF masivo...</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+              <div 
+                className="bg-primary h-full transition-all duration-200"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-slate-500 italic text-center animate-pulse">Separando páginas e identificando empleados por DNI...</p>
+          </div>
+        )}
+
+        {step === 2 && (
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="text-center space-y-2 w-full"
+          >
+            <div className="w-10 h-10 rounded-full bg-green-500/10 border border-green-500/30 flex items-center justify-center mx-auto mb-2">
+              <CheckCircle2 className="w-5 h-5 text-green-400" />
+            </div>
+            <h4 className="text-xs font-bold text-white">¡Nóminas distribuidas con éxito!</h4>
+            <p className="text-[10px] text-slate-400 max-w-[280px] mx-auto">Se han asignado 12 nóminas automáticamente y se ha notificado a la plantilla.</p>
+          </motion.div>
+        )}
+      </div>
+
+      <div className="flex justify-between items-center text-[9px] text-slate-500 border-t border-white/5 pt-2">
+        <span>Historial de subidas</span>
+        <span className="text-green-400 flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-green-400" /> Sistema listo</span>
+      </div>
+    </div>
+  );
+};
+
+const ContratosSimulation = () => {
+  const [step, setStep] = useState(0);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStep((prev) => {
+        if (prev === 0) {
+          setProgress(0);
+          return 1;
+        } else if (prev === 1) {
+          return 2;
+        } else {
+          return 0;
+        }
+      });
+    }, 4500);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    if (step === 1) {
+      const progInterval = setInterval(() => {
+        setProgress((p) => {
+          if (p >= 100) {
+            clearInterval(progInterval);
+            return 100;
+          }
+          return p + 20;
+        });
+      }, 200);
+      return () => clearInterval(progInterval);
+    }
+  }, [step]);
+
+  return (
+    <div className="w-full h-64 bg-[#111625] rounded-xl border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+        <div className="flex items-center space-x-2">
+          <FolderOpen className="w-4 h-4 text-primary-light" />
+          <span className="text-xs font-bold text-slate-300">Expediente: Ana Martínez</span>
+        </div>
+        <span className="bg-primary/20 text-primary-light text-[9px] px-2 py-0.5 rounded-full border border-primary/20">Activo</span>
+      </div>
+
+      <div className="flex-1 my-4 flex flex-col justify-center">
+        {step === 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-2 text-xs"
+          >
+            <p className="text-[9px] text-slate-500 font-semibold uppercase tracking-wider">Documentos del empleado</p>
+            <div className="bg-slate-850 p-2.5 rounded border border-white/5 flex items-center justify-between">
+              <span className="text-slate-300">DNI_Anverso.jpg</span>
+              <span className="text-green-400 text-[10px]">✓ Guardado</span>
+            </div>
+            <div className="bg-slate-850 p-2.5 rounded border border-white/5 flex items-center justify-between">
+              <span className="text-slate-400">Contrato_Trabajo_2026.pdf</span>
+              <span className="text-red-400 text-[10px] animate-pulse">● Pendiente subir</span>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 1 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-slate-900/60 p-4 rounded-lg border border-primary/20 space-y-3"
+          >
+            <div className="flex justify-between items-center text-xs">
+              <span className="font-bold text-white">Subir a Expediente</span>
+              <span className="text-[9px] text-slate-400">Formato PDF</span>
+            </div>
+            <p className="text-[10px] text-slate-400 leading-normal">
+              Subiendo documento: Contrato_Trabajo_2026.pdf
+            </p>
+            <div className="h-10 bg-slate-800 rounded border border-dashed border-slate-700 flex flex-col justify-center px-4 relative overflow-hidden">
+              <div className="flex justify-between text-[9px] text-slate-400 mb-1 z-10">
+                <span>Subiendo...</span>
+                <span>{progress}%</span>
+              </div>
+              <div className="w-full bg-slate-700 h-1 rounded-full overflow-hidden z-10">
+                <div className="bg-primary h-full transition-all duration-200" style={{ width: `${progress}%` }} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 2 && (
+          <motion.div 
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-slate-850 p-3.5 rounded border border-green-500/20 space-y-2"
+          >
+            <div className="flex items-center space-x-2 text-xs font-bold text-green-400">
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Documento guardado con éxito</span>
+            </div>
+            <div className="text-[9px] text-slate-400 space-y-1">
+              <p>• Archivo: Contrato_Trabajo_2026.pdf (1.4 MB)</p>
+              <p>• Estado: Guardado en la nube y accesible para mánager</p>
+              <p>• Cumplimiento: Cifrado RGPD</p>
+            </div>
+          </motion.div>
+        )}
+      </div>
+
+      <div className="text-[9px] text-slate-500 flex justify-between items-center border-t border-white/5 pt-2">
+        <span>Gestor Documental (Cifrado AES)</span>
+        <span className="text-slate-400">100% seguro</span>
+      </div>
+    </div>
+  );
+};
+
+const ChatSimulation = () => {
+  const [messages, setMessages] = useState<Array<{ sender: string; text: string; time: string; self: boolean }>>([]);
+  const [isTyping, setIsTyping] = useState(false);
+
+  const script = [
+    { sender: 'María (Mánager)', text: '¡Hola equipo! Acabo de subir los turnos de la semana al panel.', time: '17:45', self: false, wait: 1000 },
+    { sender: 'Tú', text: '¡Hola María! Ya los he revisado. Todo correcto.', time: '17:46', self: true, wait: 2500 },
+    { sender: 'Dani (Soporte)', text: 'Perfecto. Fichado y de camino a casa. ¡Buen fin de semana!', time: '17:47', self: false, wait: 3500 }
+  ];
+
+  useEffect(() => {
+    let timer: any;
+    let messageIndex = 0;
+
+    const runScript = () => {
+      if (messageIndex < script.length) {
+        setIsTyping(true);
+        timer = setTimeout(() => {
+          setIsTyping(false);
+          setMessages((prev) => [...prev, script[messageIndex]]);
+          messageIndex++;
+          if (messageIndex < script.length) {
+            timer = setTimeout(runScript, script[messageIndex].wait);
+          } else {
+            timer = setTimeout(() => {
+              setMessages([]);
+              messageIndex = 0;
+              runScript();
+            }, 6000);
+          }
+        }, 1500);
+      }
+    };
+
+    runScript();
+
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="w-full h-64 bg-[#111625] rounded-xl border border-white/10 p-4 flex flex-col justify-between relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+        <div className="flex items-center space-x-2">
+          <div className="relative">
+            <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/40 flex items-center justify-center text-[10px] font-bold text-primary-light">
+              FY
+            </div>
+            <div className="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-green-500 border border-[#111625]" />
+          </div>
+          <div>
+            <h4 className="text-[10px] font-bold text-white leading-tight">Canal General</h4>
+            <p className="text-[8px] text-slate-500">12 empleados conectados</p>
+          </div>
+        </div>
+        <MessageSquare className="w-4 h-4 text-slate-400" />
+      </div>
+
+      <div className="flex-1 my-3 overflow-y-auto space-y-2 flex flex-col justify-end text-[9px] pr-1">
+        {messages.map((msg, i) => (
+          <motion.div 
+            key={i}
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`max-w-[80%] rounded-lg p-2 ${msg.self ? 'bg-primary text-white self-end' : 'bg-slate-800 text-slate-200 self-start'}`}
+          >
+            {!msg.self && <p className="font-bold text-[8px] text-primary-light mb-0.5">{msg.sender}</p>}
+            <p className="leading-snug">{msg.text}</p>
+            <span className="text-[7px] text-slate-400 block text-right mt-0.5">{msg.time}</span>
+          </motion.div>
+        ))}
+
+        {isTyping && (
+          <div className="bg-slate-800 text-slate-200 rounded-lg p-2 self-start flex items-center space-x-1 w-12">
+            <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+            <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+            <span className="w-1.5 h-1.5 bg-slate-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center space-x-2 border-t border-white/5 pt-2">
+        <div className="flex-1 bg-slate-900 rounded-full px-3 py-1 text-[9px] text-slate-500 border border-white/5">
+          Escribe un mensaje en el canal...
+        </div>
+        <div className="w-5.5 h-5.5 rounded-full bg-primary flex items-center justify-center text-white cursor-pointer hover:bg-primary-dark transition-colors">
+          <ArrowRight className="w-3 h-3" />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const TareasSimulation = () => {
+  const [tasks, setTasks] = useState([
+    { text: 'Abrir local y terminal Kiosko', checked: false },
+    { text: 'Verificar stock e incidencias de turno', checked: false },
+    { text: 'Enviar checklist de fin de jornada', checked: false }
+  ]);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let index = 0;
+    const interval = setInterval(() => {
+      setTasks((prev) => {
+        const next = [...prev];
+        if (index < next.length) {
+          next[index] = { ...next[index], checked: true };
+          index++;
+        } else {
+          index = 0;
+          return prev.map(t => ({ ...t, checked: false }));
+        }
+        return next;
+      });
+    }, 2800);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    const checkedCount = tasks.filter(t => t.checked).length;
+    setProgress(Math.round((checkedCount / tasks.length) * 100));
+  }, [tasks]);
+
+  return (
+    <div className="w-full h-64 bg-[#111625] rounded-xl border border-white/10 p-6 flex flex-col justify-between relative overflow-hidden">
+      <div className="flex items-center justify-between border-b border-white/5 pb-3">
+        <div className="flex items-center space-x-2">
+          <ListTodo className="w-4 h-4 text-primary-light" />
+          <span className="text-xs font-bold text-slate-300">Tareas del Turno</span>
+        </div>
+        <span className="text-[10px] text-slate-500 font-mono">{progress}% Completado</span>
+      </div>
+
+      <div className="flex-1 my-4 flex flex-col justify-center space-y-2">
+        {tasks.map((task, i) => (
+          <div 
+            key={i}
+            className={`flex items-center space-x-3 p-2.5 rounded border transition-all duration-300 ${task.checked ? 'bg-green-500/5 border-green-500/10 text-slate-400 line-through' : 'bg-slate-800/30 border-white/5 text-slate-200'}`}
+          >
+            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center flex-shrink-0 transition-colors ${task.checked ? 'bg-green-500 border-green-500 text-white' : 'border-slate-600 bg-transparent'}`}>
+              {task.checked && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+            </div>
+            <span className="text-[11px]">{task.text}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="space-y-1.5 border-t border-white/5 pt-2">
+        <div className="w-full bg-slate-800 rounded-full h-1 overflow-hidden">
+              <motion.div 
+            className="bg-green-500 h-full"
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const tabsInfo = [
+  {
+    id: 'nominas',
+    label: 'Nóminas',
+    icon: FileText,
+    tag: 'Distribución Inteligente',
+    title: 'Envía y organiza nóminas en bloque en segundos',
+    desc: 'Sube un único PDF con todas las nóminas del mes de tu gestoría. El sistema inteligente de Fycheo identifica a cada empleado, corta el documento y notifica a cada trabajador de manera confidencial para que lo descargue desde su app.',
+    benefits: [
+      'Separación y asignación automática por empleado',
+      'Histórico organizado y seguro en la nube',
+      'Notificación push inmediata en el smartphone'
+    ],
+    link: '/nominas-empleados',
+    ctaText: 'Ver detalles de Nóminas'
+  },
+  {
+    id: 'contratos',
+    label: 'Contratos y Documentos',
+    icon: Shield,
+    tag: 'Gestión Documental RGPD',
+    title: 'Expedientes de plantilla digitales y gestión documental',
+    desc: 'Di adiós al papel. Almacena de forma segura contratos de trabajo, documentos de identidad, bajas médicas y certificados. Organiza el expediente de tu plantilla cómodamente en la nube.',
+    benefits: [
+      'Digitalización completa de expedientes individuales',
+      'Expediente único digitalizado para cada empleado',
+      'Cumplimiento estricto de la RGPD con cifrado seguro'
+    ],
+    link: '/contratos-y-documentacion',
+    ctaText: 'Ver detalles de Documentos'
+  },
+  {
+    id: 'chat',
+    label: 'Chat Interno',
+    icon: MessageSquare,
+    tag: 'Comunicación de Equipo',
+    title: 'Coordinación fluida que respeta el descanso laboral',
+    desc: 'Evita mezclar la vida privada con el trabajo en WhatsApp. Con el chat interno integrado, crea canales grupales por departamentos, envía mensajes directos y publica avisos importantes con confirmación de lectura.',
+    benefits: [
+      'Canales por equipos, sucursales o proyectos',
+      'Anuncios oficiales con notificación garantizada',
+      'Privacidad total sin compartir números personales'
+    ],
+    link: '/chat-interno',
+    ctaText: 'Ver detalles del Chat'
+  },
+  {
+    id: 'tareas',
+    label: 'Gestión de Tareas',
+    icon: ListTodo,
+    tag: 'Productividad Diaria',
+    title: 'Asigna tareas y checklists ligados al turno',
+    desc: 'Optimiza el trabajo de tus equipos. Crea checklists de tareas obligatorias que el empleado debe realizar al fichar la entrada o salida (como cierres de caja o limpiezas) y monitoriza el progreso en tiempo real.',
+    benefits: [
+      'Checklists integrados en el flujo de fichajes',
+      'Asignación individual o por departamentos',
+      'Panel de control de avances para supervisores'
+    ],
+    link: '/gestion-tareas-empleados',
+    ctaText: 'Ver detalles de Tareas'
+  }
 ];
 
 export const Home = () => {
   const [showDemo, setShowDemo] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState('nominas');
 
   // Generate FAQ Schema
   const faqSchema = {
@@ -47,9 +483,11 @@ export const Home = () => {
 
   return (
     <div className="overflow-hidden bg-[#0B0E14] text-white">
-      <script type="application/ld+json">
-        {JSON.stringify(faqSchema)}
-      </script>
+      <SEOHead
+        title="Fycheo | Software de control horario y fichaje para empresas"
+        description="Controla fichajes, jornada laboral, vacaciones e informes con Fycheo. Un software de control horario sencillo para empresas y pymes en España."
+        jsonLd={faqSchema}
+      />
 
       {showDemo && <DemoModal onClose={() => setShowDemo(false)} />}
 
@@ -63,21 +501,21 @@ export const Home = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center max-w-4xl mx-auto">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8 text-white leading-tight">
-                Planifica horarios y gestiona equipos{' '}
-                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary to-purple-500">
-                  en minutos.
+              <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-8 text-white leading-tight">
+                Control horario sencillo para empresas que{' '}
+                <span className="bg-clip-text text-transparent bg-gradient-to-r from-primary-light to-purple-400">
+                  no quieren complicarse.
                 </span>
               </h1>
               <p className="text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
-                Crea cuadrantes, gestiona vacaciones, controla ausencias y mantén a todo tu equipo sincronizado desde una única plataforma.
+                Fycheo te ayuda a registrar fichajes, gestionar empleados, controlar vacaciones y tener los informes de jornada ordenados desde un solo lugar.
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <Button size="lg" className="shadow-glow hover:shadow-glow-lg" onClick={() => window.location.href = '/register'}>
-                  Solicitar demo
+                  Probar Fycheo
                 </Button>
-                <Button variant="outline" size="lg" onClick={() => setShowDemo(true)}>
-                  Prueba gratuita
+                <Button variant="outline" size="lg" className="border-white/10 hover:bg-white/5" onClick={() => window.location.href = '/precios'}>
+                  Ver cómo funciona
                 </Button>
               </div>
             </motion.div>
@@ -89,477 +527,602 @@ export const Home = () => {
             transition={{ duration: 0.8, delay: 0.2 }}
             className="mt-16 relative mx-auto max-w-5xl"
           >
-            <div className="absolute -inset-1 rounded-2xl blur opacity-20" style={{ background: 'linear-gradient(to right, #135bec, #7c3aed)' }} />
-            <div className="relative rounded-2xl overflow-hidden shadow-2xl" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="h-8 bg-[#151B2B] border-b border-white/5 flex items-center px-4 gap-2">
-                <div className="w-2.5 h-2.5 rounded-full bg-red-500/80" />
-                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/80" />
-                <div className="w-2.5 h-2.5 rounded-full bg-green-500/80" />
-              </div>
-              <ScaledPreview nativeWidth={1280} nativeHeight={800}>
-                <ManagerDashboardMockup />
-              </ScaledPreview>
+            <div className="absolute -inset-1 rounded-2xl blur opacity-20 bg-gradient-to-r from-primary to-purple-500" />
+            <div className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10">
+              <ImagePlaceholder
+                filename="hero-fycheo-dashboard.webp"
+                path="/public/images/seo/hero-fycheo-dashboard.webp"
+                description="Mockup interactivo del dashboard principal de la empresa en Fycheo mostrando resumen de empleados activos, incidencias y cuadrantes."
+                alt="Software de control horario Fycheo con dashboard de fichajes de empleados."
+                type="hero"
+                aspectRatio="aspect-video"
+              />
             </div>
           </motion.div>
         </div>
       </section>
 
-      {/* ── SECCIÓN 2: PROBLEMA ── */}
-      <section className="py-24 bg-[#0B0E14] relative">
+      {/* ── SECCIÓN 2: BLOQUE DE DOLOR ── */}
+      <section className="py-24 bg-[#0B0E14] relative border-t border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-6">Gestionar equipos no debería ser un caos.</h2>
+            <span className="text-primary font-bold text-xs uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+              El problema
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-4 mb-6">Gestionar fichajes no debería ser un caos diario</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+              Si todavía controlas fichajes con Excel, papel o mensajes sueltos, sabes lo fácil que es que algo se pierda: una entrada que no se apunta, una salida mal registrada, una ausencia que nadie recuerda o un informe que hay que preparar deprisa. Fycheo nace para poner orden en todo eso.
+            </p>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-12 items-center max-w-5xl mx-auto">
             <div className="space-y-6">
               {[
-                { title: 'Excel desactualizado', desc: 'Cuadrantes que se rompen, versiones diferentes y fórmulas que nadie entiende.', icon: XCircle, color: 'text-red-400' },
-                { title: 'Cambios por WhatsApp', desc: 'Mensajes perdidos, turnos solapados y comunicación no oficial que causa fricción.', icon: XCircle, color: 'text-red-400' },
-                { title: 'Errores en vacaciones', desc: 'Saldos incorrectos, falta de personal en días clave y dolores de cabeza en RRHH.', icon: XCircle, color: 'text-red-400' },
-                { title: 'Falta de comunicación', desc: 'Empleados que no saben su turno hasta el último minuto, generando frustración.', icon: XCircle, color: 'text-red-400' }
+                { title: 'Excels rotos e inaccesibles', desc: 'Cuadrantes compartidos que se corrompen y fórmulas de horas extra que fallan.', icon: XCircle, color: 'text-red-400' },
+                { title: 'Cadenas de mensajes y WhatsApp', desc: 'Mensajes de cambio de turno perdidos y comunicación no oficial desorganizada.', icon: XCircle, color: 'text-red-400' },
+                { title: 'Errores en vacaciones acumuladas', desc: 'Falta de cuadrante cruzado y disputas internas por saldos de ausencias erróneos.', icon: XCircle, color: 'text-red-400' },
+                { title: 'Ausencia de validez legal', desc: 'Registros en papel fácilmente modificables que pueden acarrear sanciones de inspección.', icon: XCircle, color: 'text-red-400' }
               ].map((item, i) => (
-                <div key={i} className="flex gap-4 p-4 rounded-xl bg-red-950/20 border border-red-900/30">
-                  <item.icon className={`w-6 h-6 flex-shrink-0 ${item.color}`} />
+                <div key={i} className="flex gap-4 p-4 rounded-xl bg-red-950/10 border border-red-900/20">
+                  <item.icon className={`w-5 h-5 flex-shrink-0 mt-0.5 ${item.color}`} />
                   <div>
-                    <h3 className="font-bold text-white mb-1">{item.title}</h3>
-                    <p className="text-slate-400 text-sm">{item.desc}</p>
+                    <h3 className="font-bold text-white text-sm mb-1">{item.title}</h3>
+                    <p className="text-slate-400 text-xs leading-relaxed">{item.desc}</p>
                   </div>
                 </div>
               ))}
             </div>
             
-            <div className="relative h-full min-h-[500px]">
-               <div className="absolute inset-0 bg-gradient-to-br from-red-600/20 to-orange-600/20 blur-3xl rounded-full" />
-               <div className="relative bg-[#151B2B] rounded-2xl border border-red-500/20 p-6 shadow-2xl h-full flex flex-col overflow-hidden">
-                  
-                  {/* Título de contexto */}
+            {/* Animación interactiva del Caos de la oficina */}
+            <div className="relative h-full min-h-[450px]">
+               <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-orange-600/10 blur-3xl rounded-full" />
+               <div className="relative bg-[#151B2B] rounded-2xl border border-white/5 p-6 shadow-2xl h-full flex flex-col overflow-hidden border-red-500/20">
                   <div className="flex items-center gap-3 mb-4 relative z-40">
-                     <span className="bg-red-500/20 text-red-400 text-xs font-bold px-3 py-1 rounded-full border border-red-500/30 animate-pulse">
-                        EL PASADO
+                     <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-3 py-1 rounded-full border border-red-500/30">
+                        EL FORMATO TRADICIONAL
                      </span>
-                     <h3 className="text-xl font-bold text-slate-300">Herramientas desconectadas</h3>
+                     <h3 className="text-sm font-bold text-slate-300">Herramientas fragmentadas</h3>
                   </div>
                   
-                  {/* Contenedor del caos absoluto */}
-                  <div className="relative flex-1 w-full mt-4">
-                     
-                     {/* 1. EXCEL SECUNDARIO (Fondo) */}
-                     <motion.div 
-                       animate={{ rotate: [-2, 0, -2] }} 
-                       transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
-                       className="absolute top-2 left-4 w-56 bg-slate-100 rounded-lg shadow-xl overflow-hidden border border-slate-300 z-0 opacity-60 filter blur-[1px]"
-                     >
-                       <div className="bg-green-800 p-2 text-white text-[10px] font-bold">Cuadrante_V8_ESTESI_FINAL.xlsx</div>
-                       <div className="h-20 bg-white grid grid-cols-4 gap-px bg-slate-300 border-t border-slate-300">
-                         {[...Array(12)].map((_, i) => <div key={i} className="bg-white"></div>)}
-                       </div>
-                     </motion.div>
+                  <div className="relative flex-1 w-full mt-4 min-h-[380px]">
+                      {/* 1. Hoja Excel simulada (Desastrosa) */}
+                      <motion.div 
+                        animate={{ rotate: [-1.5, 1.5, -1.5], y: [-3, 3, -3] }} 
+                        transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
+                        className="absolute top-0 left-0 w-52 bg-slate-100 rounded shadow-lg overflow-hidden border border-slate-300 z-10 opacity-75"
+                      >
+                        <div className="bg-green-800 p-1.5 text-white text-[8px] font-bold">Registro_Horario_V4_FINAL_copia.xlsx</div>
+                        <div className="p-1.5 bg-white text-[7px] text-slate-700">
+                          <div className="grid grid-cols-4 border-b border-slate-200 pb-0.5 font-bold">
+                            <span>Emp.</span><span>Entrada</span><span>Salida</span><span>Firma</span>
+                          </div>
+                          <div className="grid grid-cols-4 pt-0.5 border-b border-slate-100">
+                            <span>Ana M.</span><span>09:15</span><span>18:00</span><span className="text-green-600">Fichado</span>
+                          </div>
+                          <div className="grid grid-cols-4 pt-0.5 border-b border-slate-100 text-red-500">
+                            <span>Luis T.</span><span>¿?</span><span>17:30</span><span className="font-bold">#ERROR</span>
+                          </div>
+                          <div className="grid grid-cols-4 pt-0.5 border-b border-slate-100 text-red-500">
+                            <span>Sofia L.</span><span>09:00</span><span>18:00</span><span className="font-mono">#VALOR!</span>
+                          </div>
+                          <div className="grid grid-cols-4 pt-0.5 text-slate-400">
+                            <span>Carlos V.</span><span>[Vacío]</span><span>[Vacío]</span><span>Falta</span>
+                          </div>
+                        </div>
+                      </motion.div>
+ 
+                      {/* 2. Correo de la Gestoría (Urgencia) */}
+                      <motion.div 
+                        animate={{ rotate: [1, -1, 1], y: [4, -4, 4] }} 
+                        transition={{ repeat: Infinity, duration: 6.8, ease: "easeInOut", delay: 0.5 }}
+                        className="absolute top-2 right-0 w-52 bg-[#1C2333] border border-red-500/30 rounded p-2.5 shadow-xl z-20"
+                      >
+                        <div className="flex items-center gap-1.5 text-red-400 text-[8px] font-bold mb-1 border-b border-white/5 pb-1">
+                          <Mail size={10} />
+                          <span>DE: gestoria@asesoria.com</span>
+                        </div>
+                        <h4 className="text-white text-[8px] font-bold mb-0.5">Asunto: Cierre de nóminas URGENTE</h4>
+                        <p className="text-[7.5px] text-slate-400 leading-normal">
+                          Faltan las firmas del mes de 4 empleados. Si no me envías el Excel hoy no podré calcular las nóminas a tiempo.
+                        </p>
+                      </motion.div>
 
-                     {/* 8. SLACK NOTIFICATION */}
-                     <motion.div 
-                       animate={{ x: [-5, 5, -5], y: [0, -5, 0], opacity: [0, 1, 1, 0], scale: [0.9, 1, 1, 0.9] }} 
-                       transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", times: [0, 0.1, 0.8, 1] }}
-                       className="absolute top-8 right-2 w-52 bg-[#3F0E40] text-white rounded-lg shadow-2xl overflow-hidden border border-slate-600 z-40 p-2 flex gap-2"
-                     >
-                       <div className="w-8 h-8 rounded bg-white p-1 flex-shrink-0 flex items-center justify-center">
-                         <MessageSquare className="w-5 h-5 text-[#3F0E40]" />
-                       </div>
-                       <div>
-                         <p className="text-[10px] font-bold">#general-tienda</p>
-                         <p className="text-[9px] text-slate-300 leading-tight">"¿Alguien sabe si mañana abrimos festivo? No encuentro el Excel."</p>
-                       </div>
-                     </motion.div>
+                      {/* 3. WhatsApp 1 (Luis - Fichaje olvidado) */}
+                      <motion.div 
+                        animate={{ y: [-4, 4, -4], rotate: [-0.5, 0.5, -0.5] }} 
+                        transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut", delay: 1 }}
+                        className="absolute bottom-16 left-0 w-52 bg-[#e5ddd5] rounded-lg shadow-xl overflow-hidden border border-slate-300 z-30"
+                      >
+                        <div className="bg-[#075E54] p-1.5 text-white text-[8px] font-bold flex items-center gap-1">
+                          <MessageSquare size={10} /> Grupo Trabajo
+                        </div>
+                        <div className="p-1.5 flex flex-col gap-1 text-[7.5px]">
+                          <div className="bg-white p-1 rounded self-start max-w-[95%]">
+                            <p className="font-bold text-green-600 leading-none mb-0.5">Luis</p>
+                            <p className="text-slate-700">Oye, ayer olvidé fichar al volver de comer. Apúntame que entré a las 15:10 porfa.</p>
+                          </div>
+                        </div>
+                      </motion.div>
 
-                     {/* 2. EMAIL URGENTE */}
-                     <motion.div 
-                       animate={{ rotate: [2, -2, 2], x: [0, 5, 0], opacity: [0, 0, 1, 1, 0], scale: [0.9, 0.9, 1, 1, 0.9] }} 
-                       transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", times: [0, 0.4, 0.5, 0.9, 1] }}
-                       className="absolute top-20 right-6 w-60 bg-white rounded-lg shadow-2xl overflow-hidden border border-slate-300 z-10"
-                     >
-                       <div className="bg-slate-100 p-2 border-b border-slate-200 flex justify-between items-center">
-                         <span className="text-slate-600 text-[10px] font-bold">Nuevo Mensaje</span>
-                         <div className="flex gap-1"><div className="w-2 h-2 rounded-full bg-red-400"/><div className="w-2 h-2 rounded-full bg-yellow-400"/></div>
-                       </div>
-                       <div className="p-2 border-b border-slate-100">
-                         <p className="text-slate-800 text-[10px] font-bold">Asunto: Fwd: RE: URGENTE Bajas</p>
-                         <p className="text-slate-500 text-[9px]">De: RRHH</p>
-                       </div>
-                       <div className="p-3 bg-red-50 text-red-800 text-[9px] leading-relaxed">
-                         "Hay un error en las nóminas, las horas extra de este mes no cuadran con el Excel de tienda. Por favor revisad manualmente los 45 empleados."
-                       </div>
-                     </motion.div>
+                      {/* 4. WhatsApp 2 (Marta - Excel bloqueado) */}
+                      <motion.div 
+                        animate={{ y: [3, -3, 3], rotate: [0.5, -0.5, 0.5] }} 
+                        transition={{ repeat: Infinity, duration: 5.2, ease: "easeInOut", delay: 1.5 }}
+                        className="absolute bottom-10 right-0 w-52 bg-[#e5ddd5] rounded-lg shadow-xl overflow-hidden border border-slate-300 z-30"
+                      >
+                        <div className="bg-[#075E54] p-1.5 text-white text-[8px] font-bold flex items-center gap-1">
+                          <MessageSquare size={10} /> Grupo Trabajo
+                        </div>
+                        <div className="p-1.5 flex flex-col gap-1 text-[7.5px]">
+                          <div className="bg-white p-1 rounded self-start max-w-[95%]">
+                            <p className="font-bold text-green-600 leading-none mb-0.5">Marta (Admin)</p>
+                            <p className="text-slate-700">Jefe, el Excel de control horario se ha bloqueado y dice que está en "Solo lectura". ¿Quién lo tiene abierto?</p>
+                          </div>
+                        </div>
+                      </motion.div>
 
-                     {/* 3. EXCEL PRINCIPAL */}
-                     <motion.div 
-                       animate={{ rotate: [-1, 1, -1], y: [0, -5, 0] }} 
-                       transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 0.5 }}
-                       className="absolute top-32 left-6 w-64 bg-slate-100 rounded-lg shadow-2xl overflow-hidden border border-slate-300 z-20"
-                     >
-                       <div className="bg-green-700 p-2 flex items-center gap-2">
-                         <div className="w-4 h-4 bg-white rounded-sm flex items-center justify-center text-[10px] text-green-700 font-bold">X</div>
-                         <span className="text-white text-xs font-semibold truncate">Cuadrante_Semana3.xlsx</span>
-                       </div>
-                       <div className="bg-slate-200 flex text-[9px] text-slate-500 border-b border-slate-300">
-                         <div className="w-6 border-r border-slate-300 p-1 text-center"></div>
-                         <div className="flex-1 border-r border-slate-300 p-1 text-center font-bold">A</div>
-                         <div className="flex-1 border-r border-slate-300 p-1 text-center font-bold">B</div>
-                         <div className="flex-1 p-1 text-center font-bold">C</div>
-                       </div>
-                       <div className="bg-white">
-                         {[1,2,3,4].map(row => (
-                           <div key={row} className="flex text-[9px] border-b border-slate-200">
-                             <div className="w-6 bg-slate-200 border-r border-slate-300 p-1 text-center text-slate-500">{row}</div>
-                             <div className="flex-1 border-r border-slate-200 p-1 text-slate-700">{row===2?'Ana':row===4?'Luis':'Juan'}</div>
-                             <div className={`flex-1 border-r border-slate-200 p-1 ${row%2===0 ? 'bg-red-100 text-red-600 font-bold' : 'text-slate-700'}`}>{row%2===0 ? '#¡REF!' : 'Mañana'}</div>
-                             <div className="flex-1 p-1 text-slate-700">Tarde</div>
-                           </div>
-                         ))}
-                       </div>
-                     </motion.div>
+                      {/* 5. WhatsApp 3 (Pedro - Turno cruzado) */}
+                      <motion.div 
+                        animate={{ x: [-2, 2, -2], y: [-2, 2, -2] }} 
+                        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 0.2 }}
+                        className="absolute top-28 left-36 w-48 bg-[#e5ddd5] rounded-lg shadow-md overflow-hidden border border-slate-300 z-20 opacity-90"
+                      >
+                        <div className="bg-[#075E54] p-1.5 text-white text-[7.5px] font-bold flex items-center gap-1">
+                          <MessageSquare size={9} /> Pedro (Móvil)
+                        </div>
+                        <div className="p-1.5 text-[7.5px] bg-white">
+                          <p className="text-slate-700 font-medium">Jefe, ¿me cambias el turno del sábado por el de Javi? Él dice que le da igual pero no me fía.</p>
+                        </div>
+                      </motion.div>
+ 
+                      {/* 6. Post-it Amarillo (Inspección) */}
+                      <motion.div 
+                        animate={{ rotate: [6, 4, 6], y: [-2, 2, -2] }}
+                        transition={{ repeat: Infinity, duration: 4.2, ease: "easeInOut" }}
+                        className="absolute top-20 right-28 w-28 bg-yellow-100 shadow-md border border-yellow-250 z-30 p-2 text-slate-800 rotate-6"
+                      >
+                        <p className="text-[8px] font-bold leading-tight" style={{ fontFamily: 'sans-serif' }}>
+                          ⚠️ OJO: Guardar registros 4 años. ¡Inspección el mes que viene!
+                        </p>
+                      </motion.div>
 
-                     {/* 9. ERROR POPUP WINDOWS */}
-                     <motion.div 
-                       animate={{ scale: [0.8, 1, 1, 0.8], rotate: [0, 2, 0], opacity: [0, 1, 1, 0] }} 
-                       transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 2, times: [0, 0.1, 0.8, 1] }}
-                       className="absolute top-1/2 left-10 w-52 bg-slate-100 rounded shadow-2xl border border-slate-400 z-50 flex flex-col"
-                       style={{ boxShadow: '10px 10px 30px rgba(0,0,0,0.5)' }}
-                     >
-                       <div className="bg-blue-800 text-white px-2 py-1 flex justify-between items-center text-[10px] font-bold">
-                         <span>Error Crítico</span>
-                         <div className="w-3 h-3 bg-red-500 flex items-center justify-center rounded-sm">x</div>
-                       </div>
-                       <div className="p-3 flex gap-2 items-center">
-                         <AlertTriangle className="w-6 h-6 text-yellow-500 flex-shrink-0" />
-                         <p className="text-slate-800 text-[9px] font-medium leading-tight">El archivo "Vacaciones_V12_Final.xlsx" está corrupto o no se puede abrir.</p>
-                       </div>
-                       <div className="p-2 border-t border-slate-300 flex justify-end">
-                         <div className="bg-slate-300 px-3 py-1 text-[9px] rounded shadow-sm border border-slate-400 cursor-pointer text-slate-800 hover:bg-slate-400">Aceptar</div>
-                       </div>
-                     </motion.div>
+                      {/* 7. Post-it Rosa (Fórmulas borradas) */}
+                      <motion.div 
+                        animate={{ rotate: [-10, -8, -10], y: [2, -2, 2] }}
+                        transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.8 }}
+                        className="absolute top-24 left-4 w-28 bg-pink-100 shadow-md border border-pink-200 z-30 p-2 text-slate-800 -rotate-8"
+                      >
+                        <p className="text-[8px] font-bold leading-tight">
+                          ¿Quién ha tocado el Excel y ha borrado las horas extras de mayo? 😡
+                        </p>
+                      </motion.div>
 
-                     {/* 4. POST-IT 2 (Superpuesto en Excel) */}
-                     <motion.div 
-                       animate={{ rotate: [-8, -12, -8], opacity: [0, 0, 1, 1, 0] }} 
-                       transition={{ repeat: Infinity, duration: 7, ease: "easeInOut", times: [0, 0.2, 0.3, 0.8, 1] }}
-                       className="absolute top-28 left-2 w-28 bg-pink-200 shadow-xl border border-pink-300 z-30 p-2"
-                     >
-                       <p className="text-pink-900 text-[10px] font-handwriting leading-tight" style={{ fontFamily: 'cursive' }}>
-                         Llamar a gestoría!! Multa por registro horario 😱
-                       </p>
-                     </motion.div>
-
-                     {/* 11. CALENDARIO ROTO */}
-                     <motion.div 
-                       animate={{ rotate: [5, 3, 5], y: [-2, 2, -2], opacity: [1, 1, 0, 0, 1] }} 
-                       transition={{ repeat: Infinity, duration: 9, ease: "easeInOut", times: [0, 0.3, 0.4, 0.8, 1] }}
-                       className="absolute -bottom-4 right-1/4 w-32 bg-white rounded shadow-xl border border-slate-300 z-10 overflow-hidden"
-                     >
-                       <div className="bg-red-600 text-white text-center text-[10px] font-bold py-1">AGOSTO</div>
-                       <div className="grid grid-cols-7 gap-px bg-slate-200 p-1">
-                         {[...Array(31)].map((_, i) => (
-                           <div key={i} className="bg-white h-4 text-center text-[6px] text-slate-500 flex items-center justify-center relative">
-                             {i+1}
-                             {i > 10 && i < 25 && <div className="absolute w-[120%] border-t border-red-500 transform rotate-45 origin-center"></div>}
-                             {i === 15 && <div className="absolute w-full h-full border border-blue-500 rounded-full"></div>}
-                           </div>
-                         ))}
-                       </div>
-                       <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
-                         <div className="text-red-600 font-black text-xl transform -rotate-12 border-4 border-red-600 rounded p-1 bg-white/80">NO CUADRA</div>
-                       </div>
-                     </motion.div>
-
-                     {/* 10. MANCHAS DE CAFÉ */}
-                     <div className="absolute bottom-10 left-1/3 w-16 h-16 rounded-full border-[3px] border-[#8B4513] opacity-20 z-0 transform -rotate-12 scale-110 blur-[1px]"></div>
-                     <div className="absolute bottom-12 left-1/3 w-12 h-12 rounded-full border-[2px] border-[#8B4513] opacity-10 z-0 transform -rotate-6 ml-2 blur-[0.5px]"></div>
-
-                     {/* 5. WHATSAPP */}
-                     <motion.div 
-                       animate={{ y: [-5, 5, -5], rotate: [1, -1, 1], opacity: [0, 1, 1, 0, 0] }} 
-                       transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", times: [0, 0.1, 0.6, 0.7, 1] }}
-                       className="absolute bottom-6 right-2 w-60 bg-[#e5ddd5] rounded-xl shadow-2xl overflow-hidden border border-slate-300 z-40"
-                     >
-                       <div className="bg-[#075E54] p-3 flex justify-between items-center">
-                         <div className="flex items-center gap-2">
-                           <div className="w-6 h-6 bg-slate-300 rounded-full flex items-center justify-center overflow-hidden">
-                             <Users className="w-4 h-4 text-slate-500" />
-                           </div>
-                           <div>
-                             <span className="text-white text-xs font-semibold block leading-tight">Grupo Trabajo (12)</span>
-                             <span className="text-green-200 text-[8px]">Tú, Ana, Luis, Carlos...</span>
-                           </div>
-                         </div>
-                       </div>
-                       <div className="p-3 flex flex-col gap-2 h-36 overflow-hidden">
-                         <div className="bg-white p-2 rounded-lg rounded-tl-none self-start max-w-[85%] shadow-sm relative">
-                           <span className="text-[#35CD96] text-[9px] font-bold block mb-0.5">+34 600 123 456</span>
-                           <p className="text-slate-700 text-[10px] leading-snug">Chicos, quién me cambia el turno de mañana? Es urgente 🙏</p>
-                           <p className="text-slate-400 text-[8px] text-right mt-0.5">08:15</p>
-                         </div>
-                         <div className="bg-[#dcf8c6] p-2 rounded-lg rounded-tr-none self-end max-w-[85%] shadow-sm relative">
-                           <p className="text-slate-700 text-[10px] leading-snug">Yo no puedo, estoy de vacaciones creo 🤔</p>
-                           <p className="text-[#4fc3f7] text-[8px] text-right mt-0.5 font-bold">08:20 ✓✓</p>
-                         </div>
-                         <div className="bg-white p-2 rounded-lg rounded-tl-none self-start max-w-[85%] shadow-sm relative">
-                           <span className="text-[#E01E5A] text-[9px] font-bold block mb-0.5">Carlos</span>
-                           <p className="text-slate-700 text-[10px] leading-snug">A mí no me han pagado las horas extra del mes pasado!! 😡</p>
-                         </div>
-                       </div>
-                     </motion.div>
-
-                     {/* 6. POST-IT 1 */}
-                     <motion.div 
-                       animate={{ rotate: [3, -3, 3], scale: [1, 1.05, 1], opacity: [0, 1, 1, 0, 0] }} 
-                       transition={{ repeat: Infinity, duration: 8, ease: "easeInOut", delay: 1, times: [0, 0.1, 0.5, 0.6, 1] }}
-                       className="absolute bottom-20 left-6 w-36 bg-yellow-200 shadow-2xl border border-yellow-300 z-50 flex flex-col p-3"
-                       style={{ boxShadow: '5px 10px 20px rgba(0,0,0,0.3)' }}
-                     >
-                       <div className="w-10 h-3 bg-yellow-400/50 mx-auto -mt-4 mb-2 rotate-2 opacity-80" />
-                       <p className="text-slate-800 text-xs font-handwriting leading-tight transform -rotate-2" style={{ fontFamily: '"Comic Sans MS", cursive, sans-serif' }}>
-                         Revisar Excel... ¿Laura estaba del 15 o del 18? Me va a matar 😭
-                       </p>
-                     </motion.div>
-
-                     {/* 7. ALERTA FLOTANTE (Badge) */}
-                     <motion.div 
-                       animate={{ y: [0, -10, 0], scale: [1, 1.1, 1] }} 
-                       transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
-                       className="absolute top-8 left-1/2 transform -translate-x-1/2 bg-red-600 text-white font-black text-xl px-4 py-2 rounded-full shadow-2xl border-4 border-[#151B2B] z-50 flex items-center gap-2"
-                     >
-                       <Bell className="w-5 h-5 animate-wiggle" />
-                       99+
-                     </motion.div>
-
-                  </div>
-               </div>
-            </div>
+                      {/* 8. Alerta Roja de Inspección (Borde parpadeante) */}
+                      <motion.div 
+                        animate={{ scale: [0.98, 1.02, 0.98] }}
+                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+                        className="absolute -bottom-2 right-4 w-56 bg-red-950/95 border border-red-500 rounded p-2 text-red-400 z-40 shadow-2xl flex gap-2 items-start"
+                      >
+                        <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 animate-pulse text-red-500" />
+                        <div>
+                          <h5 className="text-[8px] font-bold text-red-300">Riesgo de Sanción</h5>
+                          <p className="text-[7px] text-red-400 leading-snug">
+                            Las hojas de Excel no son inalterables ante una inspección de trabajo (multas de 7.500€).
+                          </p>
+                        </div>
+                      </motion.div>
+                   </div>
+                </div>
+             </div>
           </div>
         </div>
       </section>
 
       {/* ── SECCIÓN 3: SOLUCIÓN ── */}
-      <section className="py-24 bg-[#0F1420]">
+      <section className="py-24 bg-[#0F1420] border-t border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-6">Todo tu equipo conectado.</h2>
-            <p className="text-slate-400 max-w-2xl mx-auto">Una solución integral diseñada para aportar valor a cada nivel de tu organización.</p>
+            <span className="text-primary font-bold text-xs uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+              La solución
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-4 mb-6">Tus empleados fichan, tú revisas y todo queda ordenado</h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+              Fycheo pone fin a la dispersión de datos. Unifica la asistencia, incidencias de jornada, vacaciones y ausencias de tu equipo en un solo lugar.
+            </p>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-8">
-            <div className="bg-[#151B2B] p-8 rounded-2xl border border-white/5 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center mb-6">
-                <LayoutDashboard className="w-6 h-6 text-primary" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Managers</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Ahorra 10+ horas semanales en planificación.</li>
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Cero errores o solapamientos.</li>
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Visibilidad en tiempo real de la asistencia.</li>
-              </ul>
-            </div>
-
-            <div className="bg-[#151B2B] p-8 rounded-2xl border border-white/5 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-6">
-                <Smartphone className="w-6 h-6 text-purple-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Empleados</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Horarios siempre accesibles y actualizados.</li>
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Autonomía para pedir vacaciones y cambios.</li>
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Transparencia total sobre sus horas extra.</li>
-              </ul>
-            </div>
-
-            <div className="bg-[#151B2B] p-8 rounded-2xl border border-white/5 hover:border-primary/50 transition-colors">
-              <div className="w-12 h-12 bg-green-500/20 rounded-xl flex items-center justify-center mb-6">
-                <ShieldCheck className="w-6 h-6 text-green-400" />
-              </div>
-              <h3 className="text-xl font-bold text-white mb-4">Empresa</h3>
-              <ul className="space-y-3">
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Cumplimiento legal garantizado (RD 8/2019).</li>
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Reducción drástica del absentismo y retrasos.</li>
-                <li className="flex items-start text-sm text-slate-400"><Check className="w-4 h-4 text-green-500 mr-2 mt-0.5" /> Exportación directa a tu sistema de nóminas.</li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ── SECCIÓN 4: FUNCIONALIDADES ── */}
-      <section className="py-24 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-6">Todo lo que necesitas para tu día a día.</h2>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center mb-24">
-            <div>
-              <h3 className="text-3xl font-bold text-white mb-4">Horarios y Turnos</h3>
-              <p className="text-slate-400 text-lg mb-6 leading-relaxed">
-                Asigna turnos, crea cuadrantes rotativos y asegúrate de tener la cobertura adecuada en cada momento sin romper reglas legales.
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-[#151B2B] p-8 rounded-2xl border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-3">Fichajes claros</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                Tus trabajadores registran su jornada desde el móvil, ordenador o una tablet común de forma rápida y sencilla.
               </p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex text-slate-300"><CheckCircle2 className="text-primary w-5 h-5 mr-3 flex-shrink-0" /> Plantillas de turnos guardadas.</li>
-                <li className="flex text-slate-300"><CheckCircle2 className="text-primary w-5 h-5 mr-3 flex-shrink-0" /> Copiar y pegar semanas enteras.</li>
-                <li className="flex text-slate-300"><CheckCircle2 className="text-primary w-5 h-5 mr-3 flex-shrink-0" /> Alertas por exceso de horas.</li>
-              </ul>
             </div>
-            <div className="bg-[#151B2B] rounded-2xl border border-white/10 p-2 shadow-2xl overflow-hidden h-[400px]">
-                <ScaledPreview nativeWidth={800} containerHeight={400}>
-                   {/* Here we would render a mocked Turnos view or AppEmpleadoMockup based on context, for now we reuse AppEmpleado */}
-                   <div className="w-full flex justify-center mt-[-40px] transform scale-75">
-                      <AppEmpleadoMockup />
-                   </div>
-                </ScaledPreview>
-            </div>
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-16 items-center flex-col-reverse lg:flex-row-reverse">
-             <div className="bg-[#151B2B] rounded-2xl border border-white/10 p-4 shadow-2xl overflow-hidden h-[400px] flex items-center justify-center">
-                 {/* Visual para Vacaciones */}
-                 <div className="text-slate-500 flex flex-col items-center gap-4">
-                    <Calendar className="w-16 h-16 opacity-50" />
-                    <span className="font-semibold text-lg">Visual de Vacaciones</span>
-                    <span className="text-sm">(Captura de módulo de vacaciones)</span>
-                 </div>
-            </div>
-            <div>
-              <h3 className="text-3xl font-bold text-white mb-4">Vacaciones y Ausencias</h3>
-              <p className="text-slate-400 text-lg mb-6 leading-relaxed">
-                Di adiós al cruce de emails y papeles en la oficina. Aprueba vacaciones con un clic sabiendo quién más falta esos días.
+            <div className="bg-[#151B2B] p-8 rounded-2xl border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-3">Vacaciones unificadas</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                Visualiza el calendario cruzado de ausencias para asegurar la cobertura operativa antes de validar solicitudes.
               </p>
-              <ul className="space-y-3 mb-8">
-                <li className="flex text-slate-300"><CheckCircle2 className="text-primary w-5 h-5 mr-3 flex-shrink-0" /> Saldos de días calculados automáticamente.</li>
-                <li className="flex text-slate-300"><CheckCircle2 className="text-primary w-5 h-5 mr-3 flex-shrink-0" /> Notificaciones push para responsables.</li>
-                <li className="flex text-slate-300"><CheckCircle2 className="text-primary w-5 h-5 mr-3 flex-shrink-0" /> Registro de bajas médicas (IT) y adjuntos.</li>
-              </ul>
+            </div>
+            <div className="bg-[#151B2B] p-8 rounded-2xl border border-white/5">
+              <h3 className="text-lg font-bold text-white mb-3">Informes legales listos</h3>
+              <p className="text-xs text-slate-400 leading-relaxed mb-4">
+                Exporta el registro mensual acumulado de la jornada en formato oficial homologado ante cualquier requerimiento de inspección.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── SECCIÓN 5: BENEFICIOS ── */}
-      <section className="py-24 bg-[#0F1420]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ── SECCIÓN: DISPOSITIVOS Y PERFILES (MÁNAGER, APP, KIOSKO) ── */}
+      <section className="py-24 bg-[#0B0E14] border-b border-white/5 relative overflow-hidden">
+        {/* Luces de fondo premium */}
+        <div className="absolute top-1/2 right-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none opacity-5" style={{ background: 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)', filter: 'blur(60px)' }} />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-6">Resultados reales para tu negocio.</h2>
+            <span className="text-primary font-bold text-xs uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+              Dispositivos y Perfiles
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-4 mb-6">
+              Un Fycheo adaptado a cada persona y espacio de trabajo
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+              Centraliza el control de tu empresa mientras ofreces a tu plantilla la forma más cómoda de registrar su jornada laboral.
+            </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="p-6 bg-[#151B2B] rounded-2xl border border-white/5">
-              <div className="text-4xl font-black text-primary mb-2">-40%</div>
-              <h3 className="font-bold text-white mb-2">Ausentismo</h3>
-              <p className="text-sm text-slate-400">La visibilidad reduce los retrasos y el absentismo no planificado.</p>
+
+          <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {/* Tarjeta 1: Panel Web Manager */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="bg-[#151B2B]/60 backdrop-blur-sm border border-white/5 hover:border-primary/30 p-8 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/25 rounded-xl flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Building2 className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Panel Web (Mánager)</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                  El centro de control administrativo para tu ordenador. Gestiona cuadrantes de turnos, aprueba solicitudes de vacaciones, distribuye nóminas y exporta informes oficiales en un solo clic.
+                </p>
+                <ul className="space-y-2.5 mb-8 text-left">
+                  {[
+                    "Cuadro de mando completo en tiempo real",
+                    "Exportación legal (PDF / Excel)",
+                    "Carga inteligente de nóminas y expedientes"
+                  ].map((benefit, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-[11px] text-slate-300">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button 
+                onClick={() => window.location.href = '/informes-jornada-laboral'}
+                className="text-[11px] font-bold text-blue-400 hover:text-white flex items-center gap-1.5 group/btn transition-colors mt-auto self-start focus:outline-none"
+              >
+                Ver funciones del Mánager 
+                <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+
+            {/* Tarjeta 2: App Móvil */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="bg-[#151B2B]/60 backdrop-blur-sm border border-white/5 hover:border-primary/30 p-8 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 bg-primary/10 border border-primary/25 rounded-xl flex items-center justify-center text-primary-light mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Smartphone className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">App Móvil (Empleado)</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                  Fichajes ágiles y solicitudes sobre la marcha. Diseñado para trabajadores en movilidad, comerciales o personal de oficina. Fichar con un toque, añadir notas y solicitar vacaciones.
+                </p>
+                <ul className="space-y-2.5 mb-8 text-left">
+                  {[
+                    "Fichajes con geolocalización opcional",
+                    "Calendario individual de vacaciones",
+                    "Buzón de nóminas y documentos en la nube"
+                  ].map((benefit, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-[11px] text-slate-300">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-primary-light flex-shrink-0" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button 
+                onClick={() => window.location.href = '/portal-empleado'}
+                className="text-[11px] font-bold text-primary-light hover:text-white flex items-center gap-1.5 group/btn transition-colors mt-auto self-start focus:outline-none"
+              >
+                Ver funciones del Empleado 
+                <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+
+            {/* Tarjeta 3: Kiosko */}
+            <motion.div 
+              whileHover={{ y: -5 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="bg-[#151B2B]/60 backdrop-blur-sm border border-white/5 hover:border-primary/30 p-8 rounded-2xl flex flex-col justify-between shadow-lg relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-24 h-24 bg-primary/5 rounded-bl-full pointer-events-none group-hover:bg-primary/10 transition-colors" />
+              <div>
+                <div className="w-12 h-12 bg-green-500/10 border border-green-500/25 rounded-xl flex items-center justify-center text-green-400 mb-6 group-hover:scale-110 transition-transform duration-300">
+                  <Clock className="w-6 h-6" />
+                </div>
+                <h3 className="text-xl font-bold text-white mb-3">Terminal Kiosko (Tablet)</h3>
+                <p className="text-xs text-slate-400 leading-relaxed mb-6">
+                  Un punto de fichaje común para tu centro físico. Convierte cualquier tablet (Android/iPad) o PC en un reloj de fichar físico de pared. Ideal para tiendas, hostelería, talleres o fábricas.
+                </p>
+                <ul className="space-y-2.5 mb-8 text-left">
+                  {[
+                    "Fichaje rápido mediante DNI de empleado",
+                    "Sin necesidad de móviles personales",
+                    "Modo sin conexión a internet y anti-fraude"
+                  ].map((benefit, idx) => (
+                    <li key={idx} className="flex items-center gap-2 text-[11px] text-slate-300">
+                      <CheckCircle2 className="w-3.5 h-3.5 text-green-400 flex-shrink-0" />
+                      <span>{benefit}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <button 
+                onClick={() => window.location.href = '/kiosko-fichaje'}
+                className="text-[11px] font-bold text-green-400 hover:text-white flex items-center gap-1.5 group/btn transition-colors mt-auto self-start focus:outline-none"
+              >
+                Ver funciones del Kiosko 
+                <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+              </button>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── SECCIÓN INTERACTIVA DE MÓDULOS PREMIUM ── */}
+      <section className="py-24 bg-[#0B0E14] border-b border-white/5 relative">
+        <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full pointer-events-none opacity-10" style={{ background: 'radial-gradient(circle, rgba(139,92,246,0.3) 0%, transparent 70%)', filter: 'blur(50px)' }} />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center mb-16">
+            <span className="text-primary font-bold text-xs uppercase tracking-widest bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+              Más funciones de valor
+            </span>
+            <h2 className="text-3xl md:text-4xl font-extrabold text-white mt-4 mb-6">
+              Gestiona a tu equipo de forma integral en una sola app
+            </h2>
+            <p className="text-slate-400 max-w-2xl mx-auto text-sm md:text-base leading-relaxed">
+              No limites tu gestión al control horario. Fycheo unifica las herramientas clave de recursos humanos que tu pyme necesita para crecer con orden y productividad.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-12 gap-12 items-center max-w-6xl mx-auto">
+            {/* Tabs List (Columna Izquierda / Tabs selector) */}
+            <div className="lg:col-span-5 space-y-4">
+              {tabsInfo.map((tab) => {
+                const Icon = tab.icon;
+                const isActive = activeTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={cn(
+                      "w-full text-left p-4.5 rounded-xl border transition-all duration-300 flex items-start gap-4 focus:outline-none",
+                      isActive
+                        ? "bg-[#151B2B] border-primary/30 shadow-glow-sm text-white"
+                        : "bg-[#111625]/40 border-white/5 text-slate-400 hover:bg-[#111625]/80 hover:text-white"
+                    )}
+                  >
+                    <div className={cn(
+                      "p-2.5 rounded-lg transition-colors flex-shrink-0",
+                      isActive ? "bg-primary text-white" : "bg-slate-800 text-slate-400"
+                    )}>
+                      <Icon className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <h3 className="font-bold text-sm leading-tight">{tab.label}</h3>
+                        {isActive && (
+                          <span className="text-[9px] font-bold text-primary-light uppercase tracking-wider bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                            Activo
+                          </span>
+                        )}
+                      </div>
+                      <p className={cn(
+                        "text-xs leading-normal line-clamp-2",
+                        isActive ? "text-slate-300" : "text-slate-500"
+                      )}>
+                        {tab.desc}
+                      </p>
+                    </div>
+                  </button>
+                );
+              })}
             </div>
-            <div className="p-6 bg-[#151B2B] rounded-2xl border border-white/5">
-              <div className="text-4xl font-black text-green-500 mb-2">+15h</div>
-              <h3 className="font-bold text-white mb-2">Ahorro semanal</h3>
-              <p className="text-sm text-slate-400">Tiempo que los mánagers recuperan al no tener que gestionar cuadrantes manuales.</p>
-            </div>
-            <div className="p-6 bg-[#151B2B] rounded-2xl border border-white/5">
-              <div className="text-4xl font-black text-purple-500 mb-2">100%</div>
-              <h3 className="font-bold text-white mb-2">Cumplimiento Legal</h3>
-              <p className="text-sm text-slate-400">Sin miedo a inspecciones, con todos los registros guardados durante 4 años.</p>
-            </div>
-            <div className="p-6 bg-[#151B2B] rounded-2xl border border-white/5">
-              <div className="text-4xl font-black text-yellow-500 mb-2">-90%</div>
-              <h3 className="font-bold text-white mb-2">Consultas de RRHH</h3>
-              <p className="text-sm text-slate-400">El empleado es autónomo para revisar sus nóminas, turnos y vacaciones.</p>
+
+            {/* Active Tab Content (Columna Derecha) */}
+            <div className="lg:col-span-7 bg-[#151B2B] rounded-2xl border border-white/5 p-8 shadow-2xl relative min-h-[480px] flex flex-col justify-between">
+              <AnimatePresence mode="wait">
+                {tabsInfo.map((tab) => {
+                  if (tab.id !== activeTab) return null;
+                  return (
+                    <motion.div
+                      key={tab.id}
+                      initial={{ opacity: 0, y: 15 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -15 }}
+                      transition={{ duration: 0.3 }}
+                      className="flex-1 flex flex-col justify-between h-full space-y-8"
+                    >
+                      <div className="space-y-4">
+                        <span className="text-primary-light text-[10px] font-bold uppercase tracking-widest bg-primary/10 px-2.5 py-1 rounded border border-primary/20">
+                          {tab.tag}
+                        </span>
+                        <h3 className="text-xl md:text-2xl font-extrabold text-white leading-tight">
+                          {tab.title}
+                        </h3>
+                        <p className="text-slate-400 text-xs md:text-sm leading-relaxed">
+                          {tab.desc}
+                        </p>
+
+                        <div className="space-y-2.5 pt-2">
+                          {tab.benefits.map((benefit, idx) => (
+                            <div key={idx} className="flex gap-2 items-center text-xs text-slate-300">
+                              <CheckCircle2 className="text-primary w-4 h-4 flex-shrink-0" />
+                              <span>{benefit}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Simulador Interactivo */}
+                      <div className="relative w-full">
+                        {tab.id === 'nominas' && <NominasSimulation />}
+                        {tab.id === 'contratos' && <ContratosSimulation />}
+                        {tab.id === 'chat' && <ChatSimulation />}
+                        {tab.id === 'tareas' && <TareasSimulation />}
+                      </div>
+
+                      {/* Botones de acción */}
+                      <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-white/5 mt-auto">
+                        <Button 
+                          variant="primary" 
+                          size="md" 
+                          className="w-full sm:w-auto shadow-glow text-xs" 
+                          onClick={() => window.location.href = '/register'}
+                        >
+                          Probar módulo gratis
+                        </Button>
+                        <button 
+                          onClick={() => window.location.href = tab.link}
+                          className="w-full sm:w-auto text-xs font-semibold text-slate-400 hover:text-white transition-colors flex items-center justify-center gap-1 py-2.5 focus:outline-none"
+                        >
+                          <span>{tab.ctaText}</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── SECCIÓN 6: COMPARATIVA ── */}
-      <section className="py-24 relative">
+
+      {/* ── SECCIÓN 4: BENEFICIOS COMERCIALES ── */}
+      <section className="py-24 bg-[#0B0E14]">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-6">El salto evolutivo que tu empresa necesita.</h2>
+            <h2 className="text-3xl font-extrabold text-white mb-4">Menos hojas sueltas. Menos errores. Más control.</h2>
+            <p className="text-slate-400 text-sm">Los beneficios reales de implantar Fycheo en tu empresa.</p>
           </div>
-          
-          <div className="overflow-x-auto rounded-2xl border border-white/10 bg-[#151B2B]">
-            <table className="w-full text-left">
-              <thead>
-                <tr className="border-b border-white/10">
-                  <th className="p-6 text-slate-400 font-semibold w-1/4">Característica</th>
-                  <th className="p-6 text-slate-400 font-semibold w-1/4 text-center">Excel</th>
-                  <th className="p-6 text-slate-400 font-semibold w-1/4 text-center">WhatsApp</th>
-                  <th className="p-6 bg-primary/10 text-primary font-bold w-1/4 text-center rounded-tr-2xl border-b-2 border-primary">Fycheo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-white/5">
-                {[
-                  ['Centralización de datos', false, false, true],
-                  ['Aprobación de vacaciones', false, false, true],
-                  ['Cálculo automático de saldos', true, false, true],
-                  ['Fichaje geolocalizado', false, false, true],
-                  ['Informes legales automáticos', false, false, true],
-                  ['Notificaciones instantáneas', false, true, true],
-                  ['Evita solapamientos de turnos', false, false, true],
-                ].map((row, i) => (
-                  <tr key={i} className="hover:bg-white/[0.02] transition-colors">
-                    <td className="p-6 text-sm font-medium text-slate-300">{row[0]}</td>
-                    <td className="p-6 text-center">{row[1] ? <Check className="w-5 h-5 mx-auto text-slate-500" /> : <XCircle className="w-5 h-5 mx-auto text-red-900/50" />}</td>
-                    <td className="p-6 text-center">{row[2] ? <Check className="w-5 h-5 mx-auto text-slate-500" /> : <XCircle className="w-5 h-5 mx-auto text-red-900/50" />}</td>
-                    <td className="p-6 bg-primary/5 text-center"><CheckCircle2 className="w-5 h-5 mx-auto text-primary" /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            {[
+              "Fichajes claros de entrada, salida y descansos diarios.",
+              "Panel de control para revisar la jornada real de cada empleado.",
+              "Vacaciones y ausencias organizadas sin solapamientos.",
+              "Informes mensuales acumulados listos para inspecciones.",
+              "Distribución de nóminas en bloque y descarga móvil segura.",
+              "Contratos y expedientes digitales protegidos bajo la RGPD.",
+              "Chat interno profesional para coordinar al equipo sin WhatsApp.",
+              "Gestión de tareas diarias y checklists de jornada.",
+              "Modo kiosko común ideal para centros de trabajo físicos.",
+              "Portal del empleado sencillo de usar sin curva de aprendizaje."
+            ].map((beneficio, i) => (
+              <div key={i} className="flex gap-3 text-sm text-slate-300 items-center bg-[#151B2B]/50 p-4 rounded-xl border border-white/5">
+                <CheckCircle2 className="text-primary w-5 h-5 flex-shrink-0" />
+                <span>{beneficio}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── SECCIÓN 7: TESTIMONIOS ── */}
-      <section className="py-24 bg-[#0F1420]">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-extrabold text-white mb-6">Empresas que ya confían en nosotros.</h2>
-            <p className="text-slate-400">Miles de empleados utilizan Fycheo a diario.</p>
-          </div>
+      {/* ── SECCIÓN 5: FUNCIONALIDADES CLAVE ── */}
+      <section className="py-24 bg-[#0F1420] border-t border-white/5">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-3xl font-extrabold text-white text-center mb-16">Todo ordenado desde un único lugar</h2>
           
-          <div className="grid md:grid-cols-3 gap-8">
-             {[
-              {
-                text: "Desde que usamos Fycheo, organizar los turnos del restaurante ha dejado de ser un drama. El equipo está más contento porque sabe cuándo trabaja con semanas de antelación.",
-                author: "Carlos T.",
-                role: "Manager en Grupo Restauración",
-                initials: "CT",
-                color: "bg-blue-900 text-blue-200"
-              },
-              {
-                text: "El dolor de cabeza de cruzar Excels con las vacaciones del equipo desapareció por completo. Y si hay Inspección, descargo el reporte legal en un clic.",
-                author: "Laura M.",
-                role: "Directora de RRHH",
-                initials: "LM",
-                color: "bg-purple-900 text-purple-200"
-              },
-              {
-                text: "A los técnicos les encanta fichar con el móvil y GPS cuando llegan a la obra. Ya no tenemos que perseguir a nadie a final de mes para cerrar nóminas.",
-                author: "David R.",
-                role: "CEO en Empresa Constructora",
-                initials: "DR",
-                color: "bg-green-900 text-green-200"
-              }
-            ].map((testimonial, i) => (
-                <div key={i} className="bg-[#151B2B] p-8 rounded-2xl border border-white/5 flex flex-col h-full">
-                  <div className="flex text-yellow-500 mb-4">★★★★★</div>
-                  <p className="text-slate-300 italic mb-8 flex-1">"{testimonial.text}"</p>
-                  <div className="flex items-center gap-4 mt-auto">
-                     <div className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${testimonial.color}`}>{testimonial.initials}</div>
-                     <div>
-                        <div className="text-white font-bold text-sm">{testimonial.author}</div>
-                        <div className="text-slate-500 text-xs">{testimonial.role}</div>
-                     </div>
-                  </div>
-                </div>
-             ))}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">01</span>
+              <h3 className="font-bold text-white mb-2">Control horario</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Registra entradas, salidas y pausas diarias de forma sencilla desde cualquier dispositivo.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">02</span>
+              <h3 className="font-bold text-white mb-2">Portal del empleado</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Cada persona puede consultar su información acumulada de jornada y realizar acciones básicas.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">03</span>
+              <h3 className="font-bold text-white mb-2">Vacaciones y ausencias</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Solicitudes de días libres centralizadas y menos conversaciones cruzadas desorganizadas.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">04</span>
+              <h3 className="font-bold text-white mb-2">Informes oficiales</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Revisa horas ordinarias, extraordinarias e incidencias acumuladas desde el panel de mánager.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">05</span>
+              <h3 className="font-bold text-white mb-2">Nóminas digitales</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Sube las nóminas del mes en bloque y repártelas a la plantilla de forma instantánea y confidencial.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">06</span>
+              <h3 className="font-bold text-white mb-2">Contratos y documentos</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Organiza expedientes individuales en la nube y mantén tus documentos digitales bajo cumplimiento RGPD.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">07</span>
+              <h3 className="font-bold text-white mb-2">Chat interno</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Coordinación instantánea del equipo y anuncios oficiales sin mezclar la vida privada en WhatsApp.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">08</span>
+              <h3 className="font-bold text-white mb-2">Gestión de tareas</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Asigna checklists de jornada y controla el estado de avance diario de los objetivos laborales.
+              </p>
+            </div>
+            <div className="p-6 bg-surface-dark border border-white/5 rounded-xl">
+              <span className="text-2xl font-bold text-primary-light block mb-2">09</span>
+              <h3 className="font-bold text-white mb-2">Modo kiosko</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Terminal de fichaje común mediante tablet ideal para equipos y operarios presenciales.
+              </p>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ── SECCIÓN 8: FAQ SEO ── */}
-      <section className="py-24 relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* ── SECCIÓN 6: FAQ SEO ── */}
+      <section className="py-24 relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-white/5">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-extrabold text-white mb-4">Preguntas frecuentes</h2>
           <p className="text-slate-400">Resolvemos todas tus dudas sobre control horario y la plataforma.</p>
@@ -569,6 +1132,7 @@ export const Home = () => {
           {faqs.map((faq, i) => (
             <div key={i} className="border border-white/10 bg-[#151B2B] rounded-xl overflow-hidden transition-all duration-200">
               <button
+                aria-expanded={openFaq === i}
                 className="w-full px-6 py-4 text-left flex justify-between items-center focus:outline-none"
                 onClick={() => setOpenFaq(openFaq === i ? null : i)}
               >
@@ -594,20 +1158,20 @@ export const Home = () => {
         </div>
       </section>
 
-      {/* ── SECCIÓN 9: CTA FINAL ── */}
-      <section className="py-32 relative overflow-hidden bg-primary">
+      {/* ── SECCIÓN 7: CTA FINAL ── */}
+      <section className="py-24 relative overflow-hidden bg-primary">
         <div className="absolute inset-0 pointer-events-none opacity-20" style={{ background: 'radial-gradient(circle at center, white 0%, transparent 70%)' }} />
         <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
-          <h2 className="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
-            Empieza a gestionar equipos de forma inteligente.
+          <h2 className="text-3xl md:text-5xl font-extrabold text-white mb-6 tracking-tight">
+            Empieza a ordenar los fichajes de tu empresa con Fycheo
           </h2>
-          <p className="text-blue-100 text-xl mb-12 max-w-2xl mx-auto">
-            Únete a las empresas que ya han automatizado su gestión de personal. Configuración en minutos.
+          <p className="text-blue-100 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
+            Únete a las empresas que ya han digitalizado su registro de jornada. Configuración en menos de 15 minutos sin ayuda externa.
           </p>
-          <Button size="lg" className="bg-white text-primary hover:bg-slate-50 text-lg px-12 py-6 h-auto shadow-2xl rounded-2xl font-bold" onClick={() => window.location.href = '/register'}>
-            Solicitar demo
+          <Button size="lg" className="bg-white text-primary hover:bg-slate-50 text-lg px-12 py-5 h-auto shadow-2xl rounded-2xl font-bold" onClick={() => window.location.href = '/register'}>
+            Probar Fycheo Gratis
           </Button>
-          <p className="mt-8 text-blue-200 text-sm">Sin compromiso · Configuración gratuita</p>
+          <p className="mt-6 text-blue-200 text-xs">Periodo de prueba de 14 días · Sin tarjetas · Cancela cuando quieras</p>
         </div>
       </section>
     </div>

@@ -4,6 +4,9 @@ Disallow: /dashboard
 Disallow: /companies
 Disallow: /billing
 Disallow: /account
+Disallow: /plan-details
+Disallow: /login
+Disallow: /register
 Disallow: /restablecer-contrasena
 
 Sitemap: https://fycheo.es/sitemap.xml

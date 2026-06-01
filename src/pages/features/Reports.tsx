@@ -218,14 +218,14 @@ export const Reports = () => {
               <span className="text-primary">al día y seguros</span>
             </h1>
             <p className="text-lg text-slate-400 mb-8 leading-relaxed">
-              Genera informes detallados para la Inspección de Trabajo con un solo clic. Exporta en PDF o Excel. Analiza la productividad del equipo con gráficas reales.
+              Construye informes detallados y a la medida para la Inspección de Trabajo mediante un generador dinámico y flexible. Exporta en PDF o Excel. Analiza la productividad del equipo con métricas y gráficas en tiempo real.
             </p>
 
             <div className="space-y-4 mb-10">
               {[
                 { icon: FileText, title: 'A prueba de inspecciones', desc: 'Todos los registros se conservan 4 años. Exporta exactamente lo que pidan en segundos.', color: 'text-pink-400', bg: 'bg-pink-500/10' },
                 { icon: PieChart, title: 'Analítica de RRHH', desc: 'Detecta patrones de absentismo, horas extra excesivas o falta de puntualidad por empleado.', color: 'text-purple-400', bg: 'bg-purple-500/10' },
-                { icon: Download, title: 'Exportación instantánea', desc: 'PDF con firma digital, Excel editable o CSV para integraciones. Elige el formato que necesites.', color: 'text-blue-400', bg: 'bg-blue-500/10' },
+                { icon: Download, title: 'Exportación instantánea', desc: 'PDF oficial para inspección, Excel editable o CSV para integraciones. Elige el formato que necesites.', color: 'text-blue-400', bg: 'bg-blue-500/10' },
                 { icon: ShieldCheck, title: 'Datos siempre seguros', desc: 'Encriptación bancaria, copias de seguridad diarias y cumplimiento RGPD garantizado.', color: 'text-green-400', bg: 'bg-green-500/10' },
               ].map(({ icon: Icon, title, desc, color, bg }) => (
                 <div key={title} className="flex items-start gap-3">
