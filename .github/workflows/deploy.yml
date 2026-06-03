@@ -31,11 +31,12 @@ jobs:
       - name: 🔨 Build Project
         run: npm run build
 
-      - name: 📂 Sync files (SFTP)
-        env:
-          SFTP_PASS: ${{ secrets.HOSTINGER_PASS }}
-        run: |
-          sudo apt-get install -y lftp
-          lftp -u "${{ secrets.HOSTINGER_USER }}","$SFTP_PASS" \
-            sftp://${{ secrets.HOSTINGER_HOST }} \
-            -e "set sftp:auto-confirm yes; set net:timeout 30; mirror --reverse --delete --verbose ./dist/ ${{ secrets.HOSTINGER_TARGET }}; bye"
+      - name: 📂 Sync files (FTP)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.4
+        with:
+          server: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USER }}
+          password: ${{ secrets.HOSTINGER_PASS }}
+          local-dir: ./dist/
+          server-dir: ${{ secrets.HOSTINGER_TARGET }}
+          protocol: ftp
