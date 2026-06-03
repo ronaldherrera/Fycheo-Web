@@ -29,6 +29,7 @@ import { KioskoFichaje } from './pages/features/KioskoFichaje';
 import { ChatInterno } from './pages/features/ChatInterno';
 import { GestionTareas } from './pages/features/GestionTareas';
 import { NominasEmpleados } from './pages/features/NominasEmpleados';
+import { Contacto } from './pages/Contacto';
 import { GestionDocumental } from './pages/features/GestionDocumental';
 
 // Comparativas
@@ -76,6 +77,7 @@ function App() {
             <Route path="/gestion-tareas-empleados" element={<GestionTareas />} />
             <Route path="/nominas-empleados" element={<NominasEmpleados />} />
             <Route path="/contratos-y-documentacion" element={<GestionDocumental />} />
+            <Route path="/contacto" element={<Contacto />} />
             
             {/* Comparativas */}
             <Route path="/alternativa-factorial" element={<AlternativeFactorial />} />
