@@ -80,7 +80,7 @@ export const Navbar = () => {
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link to="/" className="flex items-center">
-              <img src="/fycheo_blanco.svg" alt="Fycheo" className="h-8 object-contain" />
+              <img src="/brand/logotipo_bg-dark.svg" alt="Fycheo" className="h-8 object-contain" />
             </Link>
           </div>
 

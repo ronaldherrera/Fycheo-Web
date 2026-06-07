@@ -41,6 +41,10 @@ const initialCompanyData: NewCompanyData = {
     logo_url: ''
 };
 
+const MANAGER_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5174'
+  : 'https://manager.fycheo.es';
+
 export const Companies = () => {
     const { error: toastError, success: toastSuccess } = useToast();
     const [companies, setCompanies] = useState<Company[]>([]);
@@ -305,7 +309,7 @@ export const Companies = () => {
                                         <Button 
                                             variant="outline" 
                                             className="justify-center border-white/10 hover:bg-primary/10 hover:border-primary/50 text-slate-300 hover:text-white h-8 text-xs px-3 w-full flex-1 min-[825px]:flex-none"
-                                            onClick={() => window.open('http://localhost:5174', '_blank')}
+                                            onClick={() => window.open(MANAGER_URL, '_blank')}
                                         >
                                             <ArrowUpRight className="w-3 h-3 mr-2" /> 
                                             Manager
@@ -325,7 +329,7 @@ export const Companies = () => {
                                     <Button 
                                         variant="outline" 
                                         className="w-full justify-center border-white/10 hover:bg-primary/10 hover:border-primary/50 text-slate-300 hover:text-white"
-                                        onClick={() => window.open('http://localhost:5174', '_blank')}
+                                        onClick={() => window.open(MANAGER_URL, '_blank')}
                                     >
                                         <ArrowUpRight className="w-4 h-4 mr-2" /> 
                                         Manager

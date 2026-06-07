@@ -76,7 +76,7 @@ export const DashboardLayout = () => {
             >
                 <div className="h-16 flex items-center px-6 border-b border-white/5 justify-between">
                     <Link to="/dashboard" className={cn("flex items-center transition-all", !isSidebarOpen && "w-0 opacity-0 overflow-hidden")}>
-                        <img src="/fycheo_blanco.svg" alt="Fycheo" className="h-8 object-contain" />
+                        <img src="/brand/logotipo_bg-dark.svg" alt="Fycheo" className="h-8 object-contain" />
                     </Link>
                     <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white">
                         {isSidebarOpen ? <ChevronRight className="rotate-180" /> : <ChevronRight />}
@@ -123,7 +123,7 @@ export const DashboardLayout = () => {
             {/* Mobile Header & Overlay */}
              <div className="md:hidden fixed top-0 w-full z-50 bg-surface-dark border-b border-white/5 px-4 h-16 flex items-center justify-between">
                 <Link to="/dashboard" className="flex items-center">
-                    <img src="/fycheo_blanco.svg" alt="Fycheo" className="h-8 object-contain" />
+                    <img src="/brand/logotipo_bg-dark.svg" alt="Fycheo" className="h-8 object-contain" />
                 </Link>
                 <button onClick={() => setIsSidebarOpen(true)} className="text-white p-2">
                     <Menu />

@@ -237,7 +237,7 @@ export const ResetPassword = () => {
 
       <div className="max-w-md w-full space-y-8">
         <div className="flex flex-col items-center">
-          <img src="/fycheo_blanco.svg" alt="Fycheo" className="h-12 w-auto object-contain mb-8" />
+          <img src="/brand/logotipo_bg-dark.svg" alt="Fycheo" className="h-12 w-auto object-contain mb-8" />
           <h2 className="text-center text-3xl font-extrabold text-white">
             Restablecer Contraseña
           </h2>

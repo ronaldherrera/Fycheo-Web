@@ -87,7 +87,7 @@ export const ManagerDashboardMockup = () => {
       <div style={{ width: 256, backgroundColor: '#151B2B', borderRight: '1px solid rgba(255,255,255,0.05)', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
         {/* Header logo */}
         <div style={{ height: 64, display: 'flex', alignItems: 'center', padding: '0 24px', borderBottom: '1px solid rgba(255,255,255,0.05)', justifyContent: 'space-between' }}>
-          <img src="/mngr_blanco.svg" alt="Fycheo Mngr" style={{ height: 28, objectFit: 'contain' }} />
+          <img src="/brand/logotipo_mngr_bg-dark.svg" alt="Fycheo Mngr" style={{ height: 28, objectFit: 'contain' }} />
           <ChevronRight style={{ width: 16, height: 16, color: '#64748B', transform: 'rotate(180deg)' }} />
         </div>
 

@@ -58,6 +58,10 @@ const initialCompanyData: NewCompanyData = {
     logo_url: ''
 };
 
+const MANAGER_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1')
+  ? 'http://localhost:5174'
+  : 'https://manager.fycheo.es';
+
 export const Dashboard = () => {
     console.log("Dashboard Render Check");
     const navigate = useNavigate();
@@ -603,7 +607,7 @@ export const Dashboard = () => {
                                             <Button 
                                                 variant="outline" 
                                                 size="sm"
-                                                onClick={(e) => { e.stopPropagation(); window.open('http://localhost:5174', '_blank'); }}
+                                                onClick={(e) => { e.stopPropagation(); window.open(MANAGER_URL, '_blank'); }}
                                                 className="justify-center border-white/10 hover:bg-primary/10 hover:border-primary/50 text-slate-300 hover:text-white h-8 text-xs px-3 w-full min-[1370px]:w-auto" 
                                             >
                                                 <ArrowUpRight className="w-3 h-3 mr-2" /> 
