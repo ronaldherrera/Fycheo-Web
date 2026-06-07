@@ -74,12 +74,38 @@ export const DashboardLayout = () => {
                     !isSidebarOpen && "w-20"
                 )}
             >
-                <div className="h-16 flex items-center px-6 border-b border-white/5 justify-between">
-                    <Link to="/dashboard" className={cn("flex items-center transition-all", !isSidebarOpen && "w-0 opacity-0 overflow-hidden")}>
-                        <img src="/brand/logotipo_bg-dark.svg" alt="Fycheo" className="h-8 object-contain" />
+                <div className={cn(
+                    "h-16 flex items-center border-b border-white/5 shrink-0 transition-all duration-300 relative",
+                    isSidebarOpen ? "justify-between px-6" : "justify-center px-0"
+                )}>
+                    <Link to="/dashboard" className="flex items-center shrink-0 relative">
+                        <img 
+                            src="https://www.fycheo.es/brand/logotipo_bg-dark.svg" 
+                            alt="Fycheo" 
+                            className={cn(
+                                "h-8 object-contain transition-all duration-300 ease-in-out origin-left",
+                                isSidebarOpen ? "opacity-100 max-w-[150px] scale-100" : "opacity-0 max-w-0 scale-90 pointer-events-none overflow-hidden"
+                            )} 
+                        />
+                        <img 
+                            src="https://www.fycheo.es/brand/favicon.png" 
+                            alt="Fycheo" 
+                            className={cn(
+                                "h-8 w-8 object-contain transition-all duration-300 ease-in-out origin-center absolute left-1/2 -translate-x-1/2",
+                                isSidebarOpen ? "opacity-0 max-w-0 scale-90 pointer-events-none overflow-hidden" : "opacity-100 max-w-[32px] scale-100"
+                            )} 
+                        />
                     </Link>
-                    <button onClick={() => setIsSidebarOpen(!isSidebarOpen)} className="text-slate-400 hover:text-white">
-                        {isSidebarOpen ? <ChevronRight className="rotate-180" /> : <ChevronRight />}
+                    <button 
+                        onClick={() => setIsSidebarOpen(!isSidebarOpen)} 
+                        className={cn(
+                            "text-slate-400 hover:text-white transition-all duration-300 shrink-0 z-10",
+                            isSidebarOpen 
+                                ? "absolute right-4 top-1/2 -translate-y-1/2 bg-white/5 hover:bg-white/10 rounded-full p-1 border border-white/5" 
+                                : "absolute right-0 translate-x-1/2 top-1/2 -translate-y-1/2 bg-surface-dark border border-white/10 rounded-full p-1 shadow-md hover:bg-white/5 hover:scale-105"
+                        )}
+                    >
+                        <ChevronRight size={isSidebarOpen ? 16 : 14} className={cn("transition-transform duration-300", isSidebarOpen && "rotate-180")} />
                     </button>
                 </div>
 
@@ -94,11 +120,15 @@ export const DashboardLayout = () => {
                                     "flex items-center px-3 py-2.5 rounded-lg transition-all group",
                                     isActive 
                                         ? "bg-primary/20 text-white" 
-                                        : "text-slate-400 hover:bg-white/5 hover:text-white"
+                                        : "text-slate-400 hover:bg-white/5 hover:text-white",
+                                    !isSidebarOpen && "justify-center"
                                 )}
                             >
                                 <item.icon className={cn("w-5 h-5 shrink-0", isActive ? "text-primary" : "group-hover:text-primary transition-colors")} />
-                                <span className={cn("ml-3 font-medium transition-all", !isSidebarOpen && "opacity-0 w-0 hidden")}>
+                                <span className={cn(
+                                    "font-medium transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden text-left flex-1",
+                                    isSidebarOpen ? "ml-3 opacity-100 max-w-[150px]" : "ml-0 opacity-0 max-w-0 pointer-events-none"
+                                )}>
                                     {item.name}
                                 </span>
                             </Link>
@@ -115,7 +145,12 @@ export const DashboardLayout = () => {
                         )}
                     >
                         <LogOut className="w-5 h-5 shrink-0" />
-                        <span className={cn("ml-3 font-medium transition-all", !isSidebarOpen && "opacity-0 w-0 hidden")}>Cerrar Sesión</span>
+                        <span className={cn(
+                            "font-medium transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden text-left flex-1",
+                            isSidebarOpen ? "ml-3 opacity-100 max-w-[150px]" : "ml-0 opacity-0 max-w-0 pointer-events-none"
+                        )}>
+                            Cerrar Sesión
+                        </span>
                     </button>
                 </div>
             </aside>
