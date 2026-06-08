@@ -44,8 +44,8 @@ export const Footer = () => {
             <ul className="space-y-3 text-xs">
               <li><Link to="/control-horario-pymes" className="hover:text-primary-light transition-colors">Control Horario Pymes</Link></li>
               <li><Link to="/alternativa-excel-control-horario" className="hover:text-primary-light transition-colors">Alternativa a Excel</Link></li>
-              <li><Link to="/alternativa-factorial" className="hover:text-primary-light transition-colors">Alternativa a Factorial</Link></li>
-              <li><Link to="/alternativa-sesame" className="hover:text-primary-light transition-colors">Alternativa a Sesame</Link></li>
+              <li><Link to="/alternativa-factorial" className="hover:text-primary-light transition-colors">Comparativa con Factorial</Link></li>
+              <li><Link to="/alternativa-sesame" className="hover:text-primary-light transition-colors">Comparativa con Sesame</Link></li>
             </ul>
           </div>
           

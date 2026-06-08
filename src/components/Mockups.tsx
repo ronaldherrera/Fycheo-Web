@@ -1421,11 +1421,20 @@ export const DemoModal = ({ onClose }: { onClose: () => void }) => {
           </div>
 
           {/* Footer */}
-          <div className="px-6 pb-5 pt-4 flex items-center justify-between" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          <div className="px-6 pb-5 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
             <p style={{ fontSize: 13, color: '#64748B' }}>14 días gratis · Sin tarjeta de crédito</p>
-            <Button onClick={() => window.location.href = '/register'}>
-              Crear cuenta gratis <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
+            <div className="flex gap-3 w-full sm:w-auto">
+              <Button 
+                variant="outline" 
+                className="border-white/10 hover:bg-white/5 text-xs text-white" 
+                onClick={() => window.location.href = '/contacto'}
+              >
+                Solicitar Demo Personalizada
+              </Button>
+              <Button onClick={() => window.location.href = '/register'}>
+                Crear cuenta gratis <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
           </div>
         </motion.div>
       </motion.div>

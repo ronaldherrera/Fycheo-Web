@@ -62,8 +62,6 @@ export const Navbar = () => {
   const menuRecursos = [
     { name: 'Blog de RRHH', href: '/blog', icon: BookOpen, desc: 'Artículos y guías de gestión' },
     { name: 'Guía Registro Jornada', href: '/registro-jornada-laboral', icon: Scale, desc: 'Normativa laboral obligatoria' },
-    { name: 'Alternativa a Factorial', href: '/alternativa-factorial', icon: Users, desc: 'Opción más sencilla de control' },
-    { name: 'Alternativa a Sesame', href: '/alternativa-sesame', icon: Sparkles, desc: 'Fichajes sin complicaciones' },
   ];
 
   return (

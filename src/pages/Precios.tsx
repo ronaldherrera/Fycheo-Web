@@ -257,15 +257,27 @@ export const Precios = () => {
         </div>
 
         {/* Acción global */}
-        <div className="mt-16 text-center">
-          <Button 
-            size="lg" 
-            className="px-12 shadow-glow hover:shadow-glow-lg"
-            onClick={() => window.location.href = activeTab === 'particular' ? '#app' : '/register'}
-          >
-            {activeTab === 'particular' ? 'Descargar Aplicación' : 'Empezar Prueba Gratuita'}
-          </Button>
-          <p className="mt-4 text-sm text-slate-500">Prueba gratuita de 14 días. Sin tarjeta de crédito.</p>
+        <div className="mt-16 flex flex-col items-center justify-center gap-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button 
+              size="lg" 
+              className="px-12 shadow-glow hover:shadow-glow-lg w-full sm:w-auto font-bold"
+              onClick={() => window.location.href = activeTab === 'particular' ? '#app' : '/register'}
+            >
+              {activeTab === 'particular' ? 'Descargar Aplicación' : 'Empezar Prueba Gratuita'}
+            </Button>
+            {activeTab === 'company' && (
+              <Button 
+                variant="outline" 
+                size="lg" 
+                className="border-white/10 hover:bg-white/5 px-12 w-full sm:w-auto text-white font-bold" 
+                onClick={() => window.location.href = '/contacto'}
+              >
+                Solicitar Demo
+              </Button>
+            )}
+          </div>
+          <p className="text-sm text-slate-500">Prueba gratuita de 14 días. Sin tarjeta de crédito.</p>
         </div>
 
         {/* Enterprise */}

@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronDown, XCircle, MessageSquare, FileText, Shield, ListTodo, ArrowRight, UploadCloud, FolderOpen, Mail, AlertTriangle, Building2, Smartphone, Clock } from 'lucide-react';
+import { CheckCircle2, ChevronDown, XCircle, MessageSquare, FileText, Shield, ListTodo, ArrowRight, UploadCloud, FolderOpen, Building2, Smartphone, Clock } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState, useEffect } from 'react';
@@ -512,10 +512,15 @@ export const Home = () => {
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center space-y-4 sm:space-y-0 sm:space-x-4">
                 <Button size="lg" className="shadow-glow hover:shadow-glow-lg" onClick={() => window.location.href = '/register'}>
-                  Probar Fycheo
+                  Probar Fycheo Gratis
                 </Button>
-                <Button variant="outline" size="lg" className="border-white/10 hover:bg-white/5" onClick={() => window.location.href = '/precios'}>
-                  Ver cómo funciona
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="border-white/10 hover:bg-white/5 text-white" 
+                  onClick={() => window.location.href = '/contacto'}
+                >
+                  Solicitar Demo
                 </Button>
               </div>
             </motion.div>
@@ -539,6 +544,16 @@ export const Home = () => {
               />
             </div>
           </motion.div>
+          <p className="text-center text-xs text-slate-500 mt-6 flex items-center justify-center gap-1.5">
+            <span>🖥️</span> ¿Prefieres ver una demostración? 
+            <a 
+              href="/contacto" 
+              className="text-primary-light hover:underline font-semibold flex items-center gap-1"
+            >
+              Solicita una demo personalizada con datos de tu sector
+              <ArrowRight className="w-3.5 h-3.5" />
+            </a>
+          </p>
         </div>
       </section>
 
@@ -573,147 +588,18 @@ export const Home = () => {
               ))}
             </div>
             
-            {/* Animación interactiva del Caos de la oficina */}
+            {/* Ilustración del caos de la oficina */}
             <div className="relative h-full min-h-[450px]">
-               <div className="absolute inset-0 bg-gradient-to-br from-red-600/10 to-orange-600/10 blur-3xl rounded-full" />
-               <div className="relative bg-[#151B2B] rounded-2xl border border-white/5 p-6 shadow-2xl h-full flex flex-col overflow-hidden border-red-500/20">
-                  <div className="flex items-center gap-3 mb-4 relative z-40">
-                     <span className="bg-red-500/20 text-red-400 text-[10px] font-bold px-3 py-1 rounded-full border border-red-500/30">
-                        EL FORMATO TRADICIONAL
-                     </span>
-                     <h3 className="text-sm font-bold text-slate-300">Herramientas fragmentadas</h3>
-                  </div>
-                  
-                  <div className="relative flex-1 w-full mt-4 min-h-[380px]">
-                      {/* 1. Hoja Excel simulada (Desastrosa) */}
-                      <motion.div 
-                        animate={{ rotate: [-1.5, 1.5, -1.5], y: [-3, 3, -3] }} 
-                        transition={{ repeat: Infinity, duration: 5.5, ease: "easeInOut" }}
-                        className="absolute top-0 left-0 w-52 bg-slate-100 rounded shadow-lg overflow-hidden border border-slate-300 z-10 opacity-75"
-                      >
-                        <div className="bg-green-800 p-1.5 text-white text-[8px] font-bold">Registro_Horario_V4_FINAL_copia.xlsx</div>
-                        <div className="p-1.5 bg-white text-[7px] text-slate-700">
-                          <div className="grid grid-cols-4 border-b border-slate-200 pb-0.5 font-bold">
-                            <span>Emp.</span><span>Entrada</span><span>Salida</span><span>Firma</span>
-                          </div>
-                          <div className="grid grid-cols-4 pt-0.5 border-b border-slate-100">
-                            <span>Ana M.</span><span>09:15</span><span>18:00</span><span className="text-green-600">Fichado</span>
-                          </div>
-                          <div className="grid grid-cols-4 pt-0.5 border-b border-slate-100 text-red-500">
-                            <span>Luis T.</span><span>¿?</span><span>17:30</span><span className="font-bold">#ERROR</span>
-                          </div>
-                          <div className="grid grid-cols-4 pt-0.5 border-b border-slate-100 text-red-500">
-                            <span>Sofia L.</span><span>09:00</span><span>18:00</span><span className="font-mono">#VALOR!</span>
-                          </div>
-                          <div className="grid grid-cols-4 pt-0.5 text-slate-400">
-                            <span>Carlos V.</span><span>[Vacío]</span><span>[Vacío]</span><span>Falta</span>
-                          </div>
-                        </div>
-                      </motion.div>
- 
-                      {/* 2. Correo de la Gestoría (Urgencia) */}
-                      <motion.div 
-                        animate={{ rotate: [1, -1, 1], y: [4, -4, 4] }} 
-                        transition={{ repeat: Infinity, duration: 6.8, ease: "easeInOut", delay: 0.5 }}
-                        className="absolute top-2 right-0 w-52 bg-[#1C2333] border border-red-500/30 rounded p-2.5 shadow-xl z-20"
-                      >
-                        <div className="flex items-center gap-1.5 text-red-400 text-[8px] font-bold mb-1 border-b border-white/5 pb-1">
-                          <Mail size={10} />
-                          <span>DE: gestoria@asesoria.com</span>
-                        </div>
-                        <h4 className="text-white text-[8px] font-bold mb-0.5">Asunto: Cierre de nóminas URGENTE</h4>
-                        <p className="text-[7.5px] text-slate-400 leading-normal">
-                          Faltan las firmas del mes de 4 empleados. Si no me envías el Excel hoy no podré calcular las nóminas a tiempo.
-                        </p>
-                      </motion.div>
-
-                      {/* 3. WhatsApp 1 (Luis - Fichaje olvidado) */}
-                      <motion.div 
-                        animate={{ y: [-4, 4, -4], rotate: [-0.5, 0.5, -0.5] }} 
-                        transition={{ repeat: Infinity, duration: 4.8, ease: "easeInOut", delay: 1 }}
-                        className="absolute bottom-16 left-0 w-52 bg-[#e5ddd5] rounded-lg shadow-xl overflow-hidden border border-slate-300 z-30"
-                      >
-                        <div className="bg-[#075E54] p-1.5 text-white text-[8px] font-bold flex items-center gap-1">
-                          <MessageSquare size={10} /> Grupo Trabajo
-                        </div>
-                        <div className="p-1.5 flex flex-col gap-1 text-[7.5px]">
-                          <div className="bg-white p-1 rounded self-start max-w-[95%]">
-                            <p className="font-bold text-green-600 leading-none mb-0.5">Luis</p>
-                            <p className="text-slate-700">Oye, ayer olvidé fichar al volver de comer. Apúntame que entré a las 15:10 porfa.</p>
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      {/* 4. WhatsApp 2 (Marta - Excel bloqueado) */}
-                      <motion.div 
-                        animate={{ y: [3, -3, 3], rotate: [0.5, -0.5, 0.5] }} 
-                        transition={{ repeat: Infinity, duration: 5.2, ease: "easeInOut", delay: 1.5 }}
-                        className="absolute bottom-10 right-0 w-52 bg-[#e5ddd5] rounded-lg shadow-xl overflow-hidden border border-slate-300 z-30"
-                      >
-                        <div className="bg-[#075E54] p-1.5 text-white text-[8px] font-bold flex items-center gap-1">
-                          <MessageSquare size={10} /> Grupo Trabajo
-                        </div>
-                        <div className="p-1.5 flex flex-col gap-1 text-[7.5px]">
-                          <div className="bg-white p-1 rounded self-start max-w-[95%]">
-                            <p className="font-bold text-green-600 leading-none mb-0.5">Marta (Admin)</p>
-                            <p className="text-slate-700">Jefe, el Excel de control horario se ha bloqueado y dice que está en "Solo lectura". ¿Quién lo tiene abierto?</p>
-                          </div>
-                        </div>
-                      </motion.div>
-
-                      {/* 5. WhatsApp 3 (Pedro - Turno cruzado) */}
-                      <motion.div 
-                        animate={{ x: [-2, 2, -2], y: [-2, 2, -2] }} 
-                        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut", delay: 0.2 }}
-                        className="absolute top-28 left-36 w-48 bg-[#e5ddd5] rounded-lg shadow-md overflow-hidden border border-slate-300 z-20 opacity-90"
-                      >
-                        <div className="bg-[#075E54] p-1.5 text-white text-[7.5px] font-bold flex items-center gap-1">
-                          <MessageSquare size={9} /> Pedro (Móvil)
-                        </div>
-                        <div className="p-1.5 text-[7.5px] bg-white">
-                          <p className="text-slate-700 font-medium">Jefe, ¿me cambias el turno del sábado por el de Javi? Él dice que le da igual pero no me fía.</p>
-                        </div>
-                      </motion.div>
- 
-                      {/* 6. Post-it Amarillo (Inspección) */}
-                      <motion.div 
-                        animate={{ rotate: [6, 4, 6], y: [-2, 2, -2] }}
-                        transition={{ repeat: Infinity, duration: 4.2, ease: "easeInOut" }}
-                        className="absolute top-20 right-28 w-28 bg-yellow-100 shadow-md border border-yellow-250 z-30 p-2 text-slate-800 rotate-6"
-                      >
-                        <p className="text-[8px] font-bold leading-tight" style={{ fontFamily: 'sans-serif' }}>
-                          ⚠️ OJO: Guardar registros 4 años. ¡Inspección el mes que viene!
-                        </p>
-                      </motion.div>
-
-                      {/* 7. Post-it Rosa (Fórmulas borradas) */}
-                      <motion.div 
-                        animate={{ rotate: [-10, -8, -10], y: [2, -2, 2] }}
-                        transition={{ repeat: Infinity, duration: 4.5, ease: "easeInOut", delay: 0.8 }}
-                        className="absolute top-24 left-4 w-28 bg-pink-100 shadow-md border border-pink-200 z-30 p-2 text-slate-800 -rotate-8"
-                      >
-                        <p className="text-[8px] font-bold leading-tight">
-                          ¿Quién ha tocado el Excel y ha borrado las horas extras de mayo? 😡
-                        </p>
-                      </motion.div>
-
-                      {/* 8. Alerta Roja de Inspección (Borde parpadeante) */}
-                      <motion.div 
-                        animate={{ scale: [0.98, 1.02, 0.98] }}
-                        transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
-                        className="absolute -bottom-2 right-4 w-56 bg-red-950/95 border border-red-500 rounded p-2 text-red-400 z-40 shadow-2xl flex gap-2 items-start"
-                      >
-                        <AlertTriangle size={14} className="flex-shrink-0 mt-0.5 animate-pulse text-red-500" />
-                        <div>
-                          <h5 className="text-[8px] font-bold text-red-300">Riesgo de Sanción</h5>
-                          <p className="text-[7px] text-red-400 leading-snug">
-                            Las hojas de Excel no son inalterables ante una inspección de trabajo (multas de 7.500€).
-                          </p>
-                        </div>
-                      </motion.div>
-                   </div>
-                </div>
-             </div>
+              <ImagePlaceholder
+                filename="caos-illustration.png"
+                path="/public/caos-illustration.png"
+                description="Ilustración del caos diario al gestionar el control horario de forma tradicional con hojas de papel, correos de la gestoría y mensajes sueltos."
+                alt="El caos de gestionar el control horario de forma tradicional con Excel y papel."
+                type="mockup"
+                aspectRatio="aspect-video"
+                className="h-full"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -1168,9 +1054,19 @@ export const Home = () => {
           <p className="text-blue-100 text-lg mb-10 max-w-xl mx-auto leading-relaxed">
             Únete a las empresas que ya han digitalizado su registro de jornada. Configuración en menos de 15 minutos sin ayuda externa.
           </p>
-          <Button size="lg" className="bg-white text-primary hover:bg-slate-50 text-lg px-12 py-5 h-auto shadow-2xl rounded-2xl font-bold" onClick={() => window.location.href = '/register'}>
-            Probar Fycheo Gratis
-          </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button size="lg" className="bg-white text-primary hover:bg-slate-50 text-lg px-12 py-5 h-auto shadow-2xl rounded-2xl font-bold w-full sm:w-auto" onClick={() => window.location.href = '/register'}>
+              Probar Fycheo Gratis
+            </Button>
+            <Button 
+              variant="outline" 
+              size="lg" 
+              className="border-white/20 hover:bg-white/10 text-lg px-12 py-5 h-auto rounded-2xl font-bold w-full sm:w-auto text-white" 
+              onClick={() => window.location.href = '/contacto'}
+            >
+              Solicitar Demo
+            </Button>
+          </div>
           <p className="mt-6 text-blue-200 text-xs">Periodo de prueba de 14 días · Sin tarjetas · Cancela cuando quieras</p>
         </div>
       </section>

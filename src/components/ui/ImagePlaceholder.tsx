@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image, Monitor, Smartphone, HelpCircle, FileImage, LayoutGrid } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
@@ -20,6 +21,39 @@ export const ImagePlaceholder = ({
   type = 'mockup',
   className,
 }: ImagePlaceholderProps) => {
+  const [hasError, setHasError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // En Vite, los archivos dentro de la carpeta /public se sirven en la raíz del servidor.
+  // Por lo tanto, convertimos una ruta como "/public/caos-illustration.png" a "/caos-illustration.png".
+  const resolvedSrc = path.startsWith('/public/') 
+    ? path.replace(/^\/public/, '') 
+    : path;
+
+  // Si no ha habido un error, intentamos cargar la imagen real
+  if (!hasError) {
+    return (
+      <div className={cn("relative overflow-hidden rounded-2xl border border-white/10 shadow-2xl", aspectRatio, className)}>
+        {isLoading && (
+          <div className="absolute inset-0 bg-[#151B2B] flex items-center justify-center animate-pulse">
+            <LayoutGrid className="w-8 h-8 text-primary-light animate-spin" />
+          </div>
+        )}
+        <img
+          src={resolvedSrc}
+          alt={alt}
+          className={cn(
+            "w-full h-full object-cover transition-opacity duration-300",
+            isLoading ? "opacity-0" : "opacity-100"
+          )}
+          onError={() => setHasError(true)}
+          onLoad={() => setIsLoading(false)}
+        />
+      </div>
+    );
+  }
+
+  // Fallback: Si no se encuentra la imagen, se renderiza la tarjeta de marcador de posición anterior
   const getIcon = () => {
     switch (type) {
       case 'hero':
@@ -85,3 +119,4 @@ export const ImagePlaceholder = ({
     </div>
   );
 };
+
