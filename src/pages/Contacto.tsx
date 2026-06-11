@@ -13,11 +13,16 @@ export const Contacto = () => {
     setSending(true);
     setError(null);
     try {
-      await supabase.from('demo_access').upsert({
-        email: form.email,
+      const { error: dbError } = await supabase.from('contact_messages').insert({
         name: form.name,
-        company: form.company,
-      }, { onConflict: 'email' });
+        email: form.email,
+        company: form.company || null,
+        phone: form.phone || null,
+        message: form.message || null,
+      });
+
+      if (dbError) throw dbError;
+
       setSent(true);
     } catch {
       setError('Hubo un problema al enviar. Inténtalo de nuevo.');
