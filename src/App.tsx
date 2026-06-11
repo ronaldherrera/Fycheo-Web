@@ -1,4 +1,34 @@
+import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false };
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ minHeight: '100vh', background: '#0B0E14', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem' }}>
+          <p style={{ color: 'white', fontSize: '1rem' }}>Algo ha ido mal. Por favor, recarga la página.</p>
+          <button
+            onClick={() => { this.setState({ hasError: false }); window.location.reload(); }}
+            style={{ background: '#135BEC', color: 'white', padding: '0.5rem 1.5rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer' }}
+          >
+            Recargar
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 import { MainLayout } from './layouts/MainLayout';
 import { DashboardLayout } from './layouts/DashboardLayout';
 
@@ -50,6 +80,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 
 function App() {
   return (
+    <ErrorBoundary>
     <ToastProvider>
       <Router>
         <ScrollToTop />
@@ -120,6 +151,7 @@ function App() {
         </Routes>
       </Router>
     </ToastProvider>
+    </ErrorBoundary>
   );
 }
 

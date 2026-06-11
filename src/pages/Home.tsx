@@ -30,14 +30,9 @@ const NominasSimulation = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setStep((prev) => {
-        if (prev === 0) {
-          setProgress(0);
-          return 1;
-        } else if (prev === 1) {
-          return 2;
-        } else {
-          return 0;
-        }
+        if (prev === 0) return 1;
+        if (prev === 1) return 2;
+        return 0;
       });
     }, 4500);
 
@@ -46,6 +41,7 @@ const NominasSimulation = () => {
 
   useEffect(() => {
     if (step === 1) {
+      setProgress(0);
       const progInterval = setInterval(() => {
         setProgress((p) => {
           if (p >= 100) {
@@ -129,14 +125,9 @@ const ContratosSimulation = () => {
   useEffect(() => {
     const interval = setInterval(() => {
       setStep((prev) => {
-        if (prev === 0) {
-          setProgress(0);
-          return 1;
-        } else if (prev === 1) {
-          return 2;
-        } else {
-          return 0;
-        }
+        if (prev === 0) return 1;
+        if (prev === 1) return 2;
+        return 0;
       });
     }, 4500);
     return () => clearInterval(interval);
@@ -144,6 +135,7 @@ const ContratosSimulation = () => {
 
   useEffect(() => {
     if (step === 1) {
+      setProgress(0);
       const progInterval = setInterval(() => {
         setProgress((p) => {
           if (p >= 100) {
