@@ -2,30 +2,67 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Calendar, User, Share2, Facebook, Twitter, Linkedin, ChevronDown } from 'lucide-react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import { Button } from '../../components/ui/Button';
-import { BLOG_POSTS } from '../../data/blogPosts';
 import { ImagePlaceholder } from '../../components/ui/ImagePlaceholder';
 import { SEOHead } from '../../components/SEOHead';
 import { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import type { BlogPostData } from '../../data/blogPosts';
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const formatBlogDate = (iso: string) => {
+  if (!iso) return '';
+  const [y, m, d] = iso.split('-').map(Number);
+  return `${d} ${MONTHS[m - 1]} ${y}`;
+};
+
+const mapRow = (row: any): BlogPostData => ({
+  slug:          row.slug,
+  title:         row.title,
+  excerpt:       row.excerpt,
+  category:      row.category,
+  date:          formatBlogDate(row.date),
+  author:        row.author,
+  readTime:      row.read_time,
+  imageFilename: row.image_filename,
+  imagePath:     row.image_path,
+  imageDesc:     row.image_desc,
+  imageAlt:      row.image_alt,
+  content:       row.content,
+  faqs:          row.faqs ?? [],
+});
 
 export const BlogPost = () => {
   const { slug } = useParams();
-  const navigate = useNavigate();
+  const navigate  = useNavigate();
+  const [post, setPost]       = useState<BlogPostData | null>(null);
+  const [loading, setLoading] = useState(true);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
-  const post = BLOG_POSTS.find((p) => p.slug === slug);
-
   useEffect(() => {
-    // Si no se encuentra el post, redirige al listado principal del blog
-    if (!post) {
-      navigate('/blog', { replace: true });
-    }
-  }, [post, navigate]);
+    if (!slug) { navigate('/blog', { replace: true }); return; }
+    supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('published', true)
+      .single()
+      .then(({ data }) => {
+        if (!data) { navigate('/blog', { replace: true }); return; }
+        setPost(mapRow(data));
+        setLoading(false);
+      });
+  }, [slug, navigate]);
 
-  if (!post) {
-    return null;
+  if (loading) {
+    return (
+      <div className="pt-32 pb-20 bg-background-dark min-h-screen text-white flex items-center justify-center">
+        <div className="w-8 h-8 border-2 border-purple-500/20 border-t-purple-500 rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  // Schema estructurado BlogPosting para buscadores
+  if (!post) return null;
+
   const blogPostingSchema = {
     "@context": "https://schema.org",
     "@type": "BlogPosting",
@@ -33,24 +70,14 @@ export const BlogPost = () => {
     "description": post.excerpt,
     "datePublished": post.date,
     "dateModified": post.date,
-    "author": {
-      "@type": "Organization",
-      "name": "Fycheo",
-      "url": "https://fycheo.es"
-    },
+    "author": { "@type": "Organization", "name": "Fycheo", "url": "https://fycheo.es" },
     "publisher": {
       "@type": "Organization",
       "name": "Fycheo",
-      "logo": {
-        "@type": "ImageObject",
-        "url": "https://fycheo.es/images/seo/logo-fycheo-schema.png"
-      }
+      "logo": { "@type": "ImageObject", "url": "https://fycheo.es/images/seo/logo-fycheo-schema.png" }
     },
     "image": `https://fycheo.es${post.imagePath}`,
-    "mainEntityOfPage": {
-      "@type": "WebPage",
-      "@id": `https://fycheo.es/blog/${post.slug}`
-    }
+    "mainEntityOfPage": { "@type": "WebPage", "@id": `https://fycheo.es/blog/${post.slug}` }
   };
 
   return (
@@ -120,7 +147,7 @@ export const BlogPost = () => {
               dangerouslySetInnerHTML={{ __html: post.content }}
             />
 
-            {/* FAQs del Artículo */}
+            {/* FAQs */}
             {post.faqs && post.faqs.length > 0 && (
               <div className="border-t border-white/10 pt-12 mt-12">
                 <h3 className="text-2xl font-bold text-white mb-6">Preguntas frecuentes sobre el tema</h3>

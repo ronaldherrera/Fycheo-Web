@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { 
-  LayoutDashboard, 
-  Building2, 
-  CreditCard, 
-  User, 
-  LifeBuoy, 
-  LogOut, 
-  Menu, 
+import {
+  LayoutDashboard,
+  Building2,
+  CreditCard,
+  User,
+  LifeBuoy,
+  LogOut,
+  Menu,
   X,
   ChevronRight
 } from 'lucide-react';
@@ -43,7 +43,7 @@ export const DashboardLayout = () => {
     const navigation = [
         { name: 'Resumen', href: '/dashboard', icon: LayoutDashboard },
         { name: 'Mis Organizaciones', href: '/companies', icon: Building2 },
-        { name: 'Facturación', href: '/billing', icon: CreditCard }, 
+        { name: 'Facturación', href: '/billing', icon: CreditCard },
         { name: 'Mi Cuenta', href: '/account', icon: User },
         { name: 'Ayuda', href: '/support', icon: LifeBuoy },
     ];
