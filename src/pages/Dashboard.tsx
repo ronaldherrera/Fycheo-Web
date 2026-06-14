@@ -297,56 +297,6 @@ export const Dashboard = () => {
 
 
 
-    // --- LOGICA SIMULACION MENSUALIDAD (TEMPORAL) ---
-    const handleSimulateSubscription = async () => {
-        if (companies.length === 0) {
-            toastError("No tienes empresas para simular una suscripción.");
-            return;
-        }
-        
-        const company = companies[0]; // Usar la primera empresa
-        const amount = 29.00; // Precio Basic
-        
-        if (balance < amount) {
-            toastError("Saldo insuficiente para simular mensualidad (29€).");
-            return;
-        }
-
-        try {
-            const { data: { user } } = await supabase.auth.getUser();
-            if(!user) return;
-
-            // 1. Descontar Saldo
-            const newBalance = balance - amount;
-            const { error: balError } = await supabase.from('profiles').update({ wallet_balance: newBalance }).eq('id', user.id);
-            if (balError) throw balError;
-
-            // 2. Insertar Transacción
-            await supabase.from('transactions').insert({
-                user_id: user.id,
-                company_id: null, // Pago desde Wallet Personal
-                amount: -amount,
-                amount_gross: -amount,
-                amount_net: -amount, // Net amount should also be negative for consistency or careful with PDF logic
-                amount_vat: 0,
-                type: 'purchase',
-                description: `Renovación Plan Basic - ${company.name}`,
-                invoice_number: `REC-${Date.now().toString().slice(-6)}`,
-                invoice_concept: `Renovación Mensual - ${company.name}`,
-                invoice_status: 'paid',
-                is_individual_billing: false,
-                payment_method: 'wallet',
-                created_at: new Date().toISOString()
-            });
-
-            toastSuccess("Simulación de mensualidad completada.");
-            loadDashboardData();
-        } catch (err: any) {
-            console.error(err);
-            toastError("Error al simular: " + err.message);
-        }
-    };
-
     const totalEmployees = companies.reduce((acc, curr) => acc + curr.members_count, 0);
 
     const plans = [
