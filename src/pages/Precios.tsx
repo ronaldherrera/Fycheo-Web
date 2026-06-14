@@ -4,6 +4,7 @@ import { Card } from '../components/ui/Card';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useState } from 'react';
 import { SEOHead } from '../components/SEOHead';
+import { trackSelectPlan } from '../lib/analytics';
 
 const tiersCompany = [
   {
@@ -262,7 +263,10 @@ export const Precios = () => {
             <Button 
               size="lg" 
               className="px-12 shadow-glow hover:shadow-glow-lg w-full sm:w-auto font-bold"
-              onClick={() => window.location.href = activeTab === 'particular' ? '#app' : '/register'}
+              onClick={() => {
+                if (activeTab !== 'particular') trackSelectPlan('company', '19€+');
+                window.location.href = activeTab === 'particular' ? '#app' : '/register';
+              }}
             >
               {activeTab === 'particular' ? 'Descargar Aplicación' : 'Empezar Prueba Gratuita'}
             </Button>

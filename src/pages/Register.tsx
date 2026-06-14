@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { trackSignUp } from '../lib/analytics';
 // import { useSearchParams } from 'react-router-dom'; // Eliminado
 import { CheckCircle2, AlertCircle, Building2, User, Briefcase, Heart, Eye, EyeOff, Check, X, ChevronDown } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -107,6 +108,7 @@ export const Register = () => {
       await supabase.auth.signOut();
 
       if (data.user) {
+        trackSignUp(profileType);
         setSuccess(true);
       }
     } catch (err: any) {

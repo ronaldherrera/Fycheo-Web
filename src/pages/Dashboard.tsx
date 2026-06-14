@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { trackPurchase } from '../lib/analytics';
 import { 
     Building2, 
     Users, 
@@ -279,6 +280,7 @@ export const Dashboard = () => {
             });
     
             // Reset y recargar
+            trackPurchase(selectedPlan, cost, formData.name);
             setShowNewCompanyModal(false);
             setFormData(initialCompanyData);
             setStep(1);

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { trackLead } from '../lib/analytics';
 import { Mail, Building2, User, MessageSquare, CheckCircle2, Phone } from 'lucide-react';
 
 export const Contacto = () => {
@@ -23,6 +24,7 @@ export const Contacto = () => {
 
       if (dbError) throw dbError;
 
+      trackLead();
       setSent(true);
     } catch {
       setError('Hubo un problema al enviar. Inténtalo de nuevo.');
