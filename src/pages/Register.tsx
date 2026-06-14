@@ -172,6 +172,9 @@ export const Register = () => {
           <p className="mt-2 text-center text-sm text-slate-400">
             Empieza a gestionar tu equipo hoy
           </p>
+          <div className="mt-4 flex items-center justify-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium px-4 py-2 rounded-full w-fit mx-auto">
+            🎁 <span className="text-slate-300">Recibirás</span> <span className="font-bold text-white">50€ de saldo</span> <span className="text-slate-300">al registrarte</span>
+          </div>
         </div>
         
         <form className="mt-8 space-y-6" onSubmit={handleRegister}>

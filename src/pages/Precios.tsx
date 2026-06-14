@@ -166,6 +166,9 @@ export const Precios = () => {
           <p className="mt-4 text-xl text-slate-400 max-w-2xl mx-auto leading-relaxed">
             Sin costes ocultos por puesta en marcha. Pagas únicamente por lo que tu negocio necesita para cumplir la normativa.
           </p>
+          <div className="mt-6 inline-flex items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 text-sm font-medium px-4 py-2 rounded-full">
+            🎁 Crea tu cuenta hoy y recibe <span className="font-bold text-white">50€ de saldo de bienvenida</span>
+          </div>
         </motion.div>
 
         {/* TABS */}

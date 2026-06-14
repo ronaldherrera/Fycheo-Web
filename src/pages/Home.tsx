@@ -506,15 +506,18 @@ export const Home = () => {
                 <Button size="lg" className="shadow-glow hover:shadow-glow-lg" onClick={() => window.location.href = '/register'}>
                   Probar Fycheo Gratis
                 </Button>
-                <Button 
-                  variant="outline" 
-                  size="lg" 
-                  className="border-white/10 hover:bg-white/5 text-white" 
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-white/10 hover:bg-white/5 text-white"
                   onClick={() => window.location.href = '/contacto'}
                 >
                   Solicitar Demo
                 </Button>
               </div>
+              <p className="mt-5 text-sm text-slate-400">
+                🎁 <span className="text-white font-semibold">50€ de saldo de bienvenida</span> al crear tu cuenta — sin tarjeta de crédito
+              </p>
             </motion.div>
           </div>
 
