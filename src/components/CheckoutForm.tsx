@@ -3,7 +3,7 @@ import { useState, FormEvent } from 'react';
 import { Button } from './ui/Button';
 
 interface CheckoutFormProps {
-    amount: number; // This is the Total
+    amount: number;
     netAmount: number;
     vatAmount: number;
     onSuccess: () => void;
@@ -19,9 +19,7 @@ export const CheckoutForm = ({ amount, netAmount, vatAmount, onSuccess, onCancel
     const handleSubmit = async (event: FormEvent) => {
         event.preventDefault();
 
-        if (!stripe || !elements) {
-            return;
-        }
+        if (!stripe || !elements) return;
 
         setLoading(true);
         setErrorMessage(null);
@@ -29,25 +27,19 @@ export const CheckoutForm = ({ amount, netAmount, vatAmount, onSuccess, onCancel
         try {
             const { error, paymentIntent } = await stripe.confirmPayment({
                 elements,
-                confirmParams: {
-                    // Si el pago requiere redirección, Stripe la manejará.
-                    // Si no, 'if_required' evita la redirección y nos permite manejar el éxito aquí.
-                    // Usar la URL actual para evitar redirigir a /billing si estamos en una empresa
-                    return_url: window.location.href,
-                },
-                redirect: 'if_required', 
+                confirmParams: { return_url: window.location.href },
+                redirect: 'if_required',
             });
 
             if (error) {
                 setErrorMessage(error.message ?? 'Ocurrió un error desconocido.');
-            } else if (paymentIntent && paymentIntent.status === 'succeeded') {
-                // Pago exitoso
+            } else if (paymentIntent?.status === 'succeeded') {
                 onSuccess();
             } else {
-                 setErrorMessage('El estado del pago no es definitivo.');
+                setErrorMessage('El estado del pago no es definitivo.');
             }
         } catch (e: any) {
-             setErrorMessage(e.message);
+            setErrorMessage(e.message);
         } finally {
             setLoading(false);
         }
@@ -55,8 +47,6 @@ export const CheckoutForm = ({ amount, netAmount, vatAmount, onSuccess, onCancel
 
     return (
         <form onSubmit={handleSubmit} className="space-y-6">
-            
-            {/* Summary Card moved here */}
             <div className="bg-[#27272a] rounded-xl p-4 space-y-3 border border-white/5">
                 <div className="flex justify-between text-sm text-slate-400">
                     <span>Subtotal (Saldo Añadido)</span>
@@ -73,15 +63,10 @@ export const CheckoutForm = ({ amount, netAmount, vatAmount, onSuccess, onCancel
                 </div>
             </div>
 
-            <div className="bg-[#27272a] p-4 rounded-xl border border-transparent">
-                <PaymentElement 
-                    options={{
-                        layout: 'tabs',
-                        paymentMethodOrder: ['card'],
-                    }} 
-                />
+            <div className="bg-[#27272a] p-4 rounded-xl border border-white/10">
+                <PaymentElement options={{ layout: 'tabs' }} />
             </div>
-            
+
             {errorMessage && (
                 <div className="text-red-400 text-sm bg-red-400/10 p-4 rounded-xl border border-red-400/20">
                     {errorMessage}
@@ -89,18 +74,18 @@ export const CheckoutForm = ({ amount, netAmount, vatAmount, onSuccess, onCancel
             )}
 
             <div className="flex gap-4 pt-2">
-                <Button 
-                    type="button" 
-                    variant="ghost" 
+                <Button
+                    type="button"
+                    variant="ghost"
                     className="flex-1 h-14 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl text-base"
                     onClick={onCancel}
                     disabled={loading}
                 >
                     Cancelar
                 </Button>
-                <Button 
+                <Button
                     type="submit"
-                    disabled={!stripe || loading} 
+                    disabled={!stripe || loading}
                     className="flex-[2] h-14 text-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white border-0 rounded-xl shadow-lg shadow-blue-600/20 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                 >
                     {loading ? 'Procesando...' : `Pagar ${amount.toFixed(2)}€`}

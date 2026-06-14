@@ -162,20 +162,28 @@ export const RechargeModal = ({ isOpen, onClose, onSuccess, initialAmount, compa
                     ) : (
                         <div className="animate-in slide-in-from-right-10 fade-in duration-300">
                              {clientSecret && stripePromise && (
-                                <Elements stripe={stripePromise} options={{ 
+                                <Elements stripe={stripePromise} options={{
                                     clientSecret,
                                     appearance: {
                                         theme: 'night',
                                         variables: {
-                                            colorPrimary: '#2563eb', // blue-600
-                                            colorBackground: '#27272a', 
+                                            colorPrimary: '#2563eb',
+                                            colorBackground: '#27272a',
                                             colorText: '#f4f4f5',
-                                            borderRadius: '12px',
+                                            colorTextSecondary: '#a1a1aa',
+                                            colorTextPlaceholder: '#71717a',
+                                            borderRadius: '8px',
+                                            fontSizeBase: '15px',
+                                        },
+                                        rules: {
+                                            '.Label': { color: '#a1a1aa', marginBottom: '6px' },
+                                            '.Input': { border: '1px solid #3f3f46', backgroundColor: '#18181b', color: '#f4f4f5' },
+                                            '.Input:focus': { border: '1px solid #2563eb' },
                                         }
                                     }
                                 }}>
-                                    <CheckoutForm 
-                                        amount={totalAmount} 
+                                    <CheckoutForm
+                                        amount={totalAmount}
                                         netAmount={netAmount}
                                         vatAmount={vatAmount}
                                         onSuccess={handlePaymentSuccess}
