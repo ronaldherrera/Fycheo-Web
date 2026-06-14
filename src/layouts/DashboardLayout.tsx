@@ -6,7 +6,6 @@ import {
   Building2,
   CreditCard,
   User,
-  LifeBuoy,
   LogOut,
   Menu,
   X,
@@ -45,7 +44,6 @@ export const DashboardLayout = () => {
         { name: 'Mis Organizaciones', href: '/companies', icon: Building2 },
         { name: 'Facturación', href: '/billing', icon: CreditCard },
         { name: 'Mi Cuenta', href: '/account', icon: User },
-        { name: 'Ayuda', href: '/support', icon: LifeBuoy },
     ];
 
     const handleLogout = async () => {
